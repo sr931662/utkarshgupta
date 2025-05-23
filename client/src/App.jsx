@@ -3,7 +3,6 @@ import Footer from './components/Footer/Footer';
 import Contact from './components/Home/Contacts/Contact';
 import CV from './components/Home/CV/CV';
 import Hero from './components/Home/Hero/Hero';
-import Home from "./components/Home/Home";
 import Publications from './components/Home/Publications/Publications';
 import ResearchInterest from './components/Home/ResearchInterests/ResearchInterests';
 import Navbar from './components/Navbar/Navbar';
