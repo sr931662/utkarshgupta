@@ -34,7 +34,7 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     setAuthError(null);
     try {
-      const { data } = await axios.post('https://utkarshgupta.vercel.app/api/auth/login', { email, password });
+      const { data } = await axios.post('https://utkarshgupta-1.onrender.com/api/auth/login', { email, password });
       localStorage.setItem('token', data.token);
       setAuthToken(data.token);
       const decoded = jwtDecode(data.token);
@@ -62,7 +62,7 @@ export const AuthProvider = ({ children }) => {
     setAuthError(null);
     setAuthSuccess(null);
     try {
-      await axios.post('https://utkarshgupta.vercel.app/api/auth/forgotPassword', { email });
+      await axios.post('https://utkarshgupta-1.onrender.com/api/auth/forgotPassword', { email });
       setAuthSuccess('Password reset link sent to your email!');
     } catch (err) {
       setAuthError(err.response?.data?.message || 'Failed to send reset link. Please try again.');
@@ -76,7 +76,7 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     setAuthError(null);
     try {
-      const { data } = await axios.patch(`https://utkarshgupta.vercel.app/api/auth/resetPassword/${token}`, { password: newPassword });
+      const { data } = await axios.patch(`https://utkarshgupta-1.onrender.com/api/auth/resetPassword/${token}`, { password: newPassword });
       setAuthSuccess('Password reset successfully! You can now login with your new password.');
       return data;
     } catch (err) {
