@@ -34,15 +34,14 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     setAuthError(null);
     try {
-      const { data } = await axios.post('https://utkarshgupta-1.onrender.com/api/auth/login', { email, password });
-      localStorage.setItem('token', data.token);
+      const data = await authAPI.login(email, password); // Use authAPI instead of direct axios
       setAuthToken(data.token);
       const decoded = jwtDecode(data.token);
       setUser(decoded);
       setIsAuthenticated(true);
       return data;
     } catch (err) {
-      setAuthError(err.response?.data?.message || 'Login failed. Please check your credentials.');
+      setAuthError(err.message || 'Login failed. Please check your credentials.');
       throw err;
     } finally {
       setLoading(false);
@@ -62,10 +61,10 @@ export const AuthProvider = ({ children }) => {
     setAuthError(null);
     setAuthSuccess(null);
     try {
-      await axios.post('https://utkarshgupta-1.onrender.com/api/auth/forgotPassword', { email });
+      await authAPI.forgotPassword(email); // You'll need to add this to authAPI.jsx
       setAuthSuccess('Password reset link sent to your email!');
     } catch (err) {
-      setAuthError(err.response?.data?.message || 'Failed to send reset link. Please try again.');
+      setAuthError(err.message || 'Failed to send reset link. Please try again.');
       throw err;
     } finally {
       setLoading(false);
