@@ -6,7 +6,7 @@ import styles from './dashboard.module.css';
 
 // Icons
 import { 
-  FiHome, FiUpload, FiFolder, FiSettings, FiUser, 
+  FiHome, FiUpload, FiSettings, FiUser, 
   FiBell, FiSearch, FiChevronLeft, FiChevronRight,
   FiFileText, FiTrendingUp, FiUsers, FiHardDrive
 } from 'react-icons/fi';

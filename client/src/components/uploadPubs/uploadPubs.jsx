@@ -4,7 +4,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useTheme } from '../../context/ThemeContext';
 import styles from './uploadPubs.module.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faFilePdf, faFileWord, faFileExcel, faFilePowerpoint, faFileImage, faFileAlt, faCloudUploadAlt, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { faFilePdf, faFileWord, faFileImage, faFileAlt, faCloudUploadAlt, faTimes } from '@fortawesome/free-solid-svg-icons';
 
 // Register ScrollTrigger plugin
 gsap.registerPlugin(ScrollTrigger);
