@@ -78,6 +78,26 @@ const Navbar = () => {
     toggleDarkMode();
   };
 
+  const renderPublicNavItems = () => (
+    <>
+      <a href="/#interests" className={styles.navLink}>
+        <span className={styles.linkText}>Interests</span>
+        <span className={styles.linkHover}></span>
+      </a>
+      <a href="/#publications" className={styles.navLink}>
+        <span className={styles.linkText}>Publications</span>
+        <span className={styles.linkHover}></span>
+      </a>
+      <a href="/#cv" className={styles.navLink}>
+        <span className={styles.linkText}>CV</span>
+        <span className={styles.linkHover}></span>
+      </a>
+      <a href="/#contact" className={styles.navLink}>
+        <span className={styles.linkText}>Get in touch</span>
+        <span className={styles.linkHover}></span>
+      </a>
+    </>
+  );
 
   const renderAdminNavItems = () => (
     <>
@@ -255,6 +275,18 @@ const Navbar = () => {
             </>
           ) : isHomePage ? (
             <>
+              <a href="/#interests" className={styles.mobileNavLink} onClick={toggleMobileMenu}>
+                <span className={styles.mobileLinkText}>Interests</span>
+              </a>
+              <a href="/#publications" className={styles.mobileNavLink} onClick={toggleMobileMenu}>
+                <span className={styles.mobileLinkText}>Publications</span>
+              </a>
+              <a href="/#cv" className={styles.mobileNavLink} onClick={toggleMobileMenu}>
+                <span className={styles.mobileLinkText}>CV</span>
+              </a>
+              <a href="/#contact" className={styles.mobileNavLink} onClick={toggleMobileMenu}>
+                <span className={styles.mobileLinkText}>Get in touch</span>
+              </a>
             </>
           ) : (
             <Link to="/login" className={styles.mobileAdminLogin} onClick={toggleMobileMenu}>
