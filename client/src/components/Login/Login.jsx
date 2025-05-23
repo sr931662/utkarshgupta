@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/authContext';
 import { useTheme } from '../../context/ThemeContext';
 import styles from './Login.module.css';
+import authAPI from '../../context/authAPI'; // Import the authAPI
 
 const Login = () => {
   const [loginForm, setLoginForm] = useState({
@@ -13,7 +14,12 @@ const Login = () => {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [errors, setErrors] = useState('');
-  const { login, loading, forgotPassword } = useAuth();
+  const { 
+    loading, 
+    setAuthError, 
+    setAuthSuccess,
+    clearMessages
+  } = useAuth();
   const { darkMode } = useTheme();
   const navigate = useNavigate();
 
@@ -28,28 +34,36 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    clearMessages();
     setErrors('');
     setSuccessMessage('');
     
     try {
-      await login(loginForm.email, loginForm.password);
+      const data = await authAPI.login(loginForm.email, loginForm.password);
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      setAuthSuccess('Login successful!');
       navigate('/admin/dashboard');
     } catch (error) {
       setErrors(error.message || 'Login failed');
+      setAuthError(error.message || 'Login failed');
     }
   };
 
   const handleForgotPasswordSubmit = async (e) => {
     e.preventDefault();
+    clearMessages();
     setErrors('');
     
     try {
-      await forgotPassword(forgotPasswordEmail);
+      await authAPI.forgotPassword(forgotPasswordEmail);
       setSuccessMessage('Password reset link sent to your email!');
+      setAuthSuccess('Password reset link sent to your email!');
       setForgotPasswordEmail('');
       setShowForgotPassword(false);
     } catch (error) {
       setErrors(error.message || 'Failed to send reset link');
+      setAuthError(error.message || 'Failed to send reset link');
     }
   };
 
@@ -147,6 +161,7 @@ const Login = () => {
               onClick={() => {
                 setShowForgotPassword(false);
                 setErrors('');
+                clearMessages();
               }}
               className={styles.cancelButton}
             >
@@ -157,7 +172,6 @@ const Login = () => {
       )}
     </div>
   );
-  
 };
 
 export default Login;
