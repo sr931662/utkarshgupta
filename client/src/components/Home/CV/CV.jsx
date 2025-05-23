@@ -46,7 +46,7 @@ const CV = () => {
     if (subtitleRef.current) {
       subtitleRef.current.style.color = darkMode ? '#94a3b8' : '#4b5563';
     }
-  }, []);
+  }, [darkMode]);
 
   // Main animations and effects
   useEffect(() => {
