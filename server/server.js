@@ -38,7 +38,7 @@ app.use('/api', limiter);
 // CORS configuration
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: ['http://localhost:3000', 'https://utkarshgupta.vercel.app'],
     methods: 'GET,POST,PUT,DELETE,PATCH,HEAD',
     credentials: true,
   })
