@@ -24,7 +24,7 @@ const cookieOptions = {
 // User Registration
 exports.register = async (req, res, next) => {
   try {
-    const { email, password, name } = req.body;
+    const { email, pass, name } = req.body;
 
     // Prevent duplicate registration
     const existingUser = await User.findOne({ email });
@@ -34,13 +34,13 @@ exports.register = async (req, res, next) => {
 
     const newUser = await User.create({
       email,
-      password,
+      pass,
       name,
       role: req.body.role || 'admin' // Default to admin if not specified
     });
 
     // Secure response (exclude password)
-    newUser.password = undefined;
+    newUser.pass = undefined;
 
     res.status(201).json({
       status: 'success',
@@ -56,17 +56,17 @@ exports.register = async (req, res, next) => {
 // User Login
 exports.login = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    const { email, pass } = req.body;
 
     // 1) Check if email and password exist
-    if (!email || !password) {
+    if (!email || !pass) {
       return next(new AppError('Please provide email and password', 400));
     }
 
     // 2) Check if user exists and password is correct
     const user = await User.findOne({ email }).select('+password');
     
-    if (!user || !(await user.verifyPassword(password))) {
+    if (!user || !(await user.verifyPassword(pass))) {
       return next(new AppError('Incorrect email or password', 401));
     }
 
@@ -170,7 +170,7 @@ exports.updatePassword = async (req, res, next) => {
     }
 
     // 3) Update password
-    user.password = newPassword;
+    user.pass = newPassword;
     user.passwordChangedAt = Date.now();
     await user.save();
 

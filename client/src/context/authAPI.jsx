@@ -51,16 +51,7 @@ const authAPI = {
       throw new Error(errorMessage);
     }
   },
-  async forgotPassword(email) {
-    try {
-      const response = await api.post('/forgot-password', { email });
-      return response.data;
-    } catch (error) {
-      const errorMessage = error.response?.data?.message || 
-                         'Failed to send password reset email';
-      throw new Error(errorMessage);
-    }
-  },
+
   async verifyOTP(email, otp) {
     try {
       const response = await api.post('/verify-otp', { email, otp });

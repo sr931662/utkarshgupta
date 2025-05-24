@@ -31,11 +31,11 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  const login = async (email, password) => {
+  const login = async (email, pass) => {
     setLoading(true);
     setAuthError(null);
     try {
-      const data = await authAPI.login(email, password); // Use authAPI instead of direct axios
+      const data = await authAPI.login(email, pass); // Use authAPI instead of direct axios
       setAuthToken(data.token);
       const decoded = jwtDecode(data.token);
       setUser(decoded);
