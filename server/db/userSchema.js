@@ -14,7 +14,7 @@ const userSchema = new mongoose.Schema(
       validate: [validator.isEmail, "Invalid email format"],
       index: true,
     },
-    password: {
+    pass: {
       type: String,
       required: [true, "Password is required"],
       minlength: [12, "Password must be at least 12 characters"],
@@ -46,7 +46,7 @@ const userSchema = new mongoose.Schema(
 // Middleware: Hash password before saving
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
-  this.password = await bcrypt.hash(this.password, 12);
+  this.pass = await bcrypt.hash(this.pass, 12);
   next();
 });
 userSchema.methods.changedPasswordAfter = function(JWTTimestamp) {
@@ -72,7 +72,7 @@ userSchema.methods.createPasswordResetToken = function() {
 };
 // Method: Compare hashed password
 userSchema.methods.verifyPassword = async function (candidatePassword) {
-  return await bcrypt.compare(candidatePassword, this.password);
+  return await bcrypt.compare(candidatePassword, this.pass);
 };
 
 // Indexes
