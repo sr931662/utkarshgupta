@@ -42,7 +42,7 @@ const Login = () => {
     clearMessages();
 
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/login', loginForm);
+      const response = await axios.post('https://utkarshgupta-1.onrender.com/api/auth/login', loginForm);
       
       // Call the auth context login function
       authLogin(response.data.token, response.data.data.user);
