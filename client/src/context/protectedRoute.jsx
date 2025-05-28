@@ -1,24 +1,22 @@
-import { useAuth } from './authContext';
-import { Navigate, useLocation } from 'react-router-dom';
-import LoadingSpinner from './LoadingSpinner'; // Create this component
+import { Navigate, Outlet } from 'react-router-dom';
+import { useAuth } from '../context/authContext';
 
-const ProtectedRoute = ({ children, adminOnly = false, redirectTo = '/' }) => {
-  const location = useLocation();
-  const { isAuthenticated, isAdmin, loading } = useAuth();
+const ProtectedRoute = ({ adminOnly = false }) => {
+  const { isAuthenticated, user, loading } = useAuth();
 
   if (loading) {
-    return <LoadingSpinner />;
+    return <div>Loading...</div>;
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to="/login" replace />;
   }
 
-  if (adminOnly && !isAdmin) {
-    return <Navigate to={redirectTo} state={{ from: location }} replace />;
+  if (adminOnly && !['superadmin', 'manager'].includes(user?.role)) {
+    return <Navigate to="/" replace />;
   }
 
-  return children;
+  return <Outlet />;
 };
 
 export default ProtectedRoute;

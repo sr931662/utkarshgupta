@@ -1,25 +1,11 @@
-import React from 'react';
-import styles from './LoadingSpinner.module.css';
+// components/LoadingSpinner.jsx
 
-const LoadingSpinner = ({ size = 'medium', color = 'primary' }) => {
-  const sizeClasses = {
-    small: styles.small,
-    medium: styles.medium,
-    large: styles.large
-  };
+import styles from './LoadingSpinner.module.css'
 
-  const colorClasses = {
-    primary: styles.primary,
-    secondary: styles.secondary,
-    light: styles.light,
-    dark: styles.dark
-  };
 
-  return (
-    <div className={`${styles.spinnerContainer} ${sizeClasses[size]} ${colorClasses[color]}`}>
-      <div className={styles.spinner}></div>
-    </div>
-  );
-};
-
+const LoadingSpinner = () => (
+  <div className={styles.spinner_container}>
+    <div className={styles.loading_spinner}></div>
+  </div>
+);
 export default LoadingSpinner;

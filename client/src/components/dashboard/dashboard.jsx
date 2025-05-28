@@ -11,6 +11,7 @@ import {
   FiFileText, FiTrendingUp, FiUsers, FiHardDrive
 } from 'react-icons/fi';
 import UploadPublications from './Publishings/uploadPubs';
+import ProfileSettings from './profileSettings/profileSettings';
 
 const Dashboard = () => {
   const { darkMode } = useTheme();
@@ -67,7 +68,7 @@ const Dashboard = () => {
       case 'settings':
         return <div className={styles.tabContent}>Settings View</div>;
       case 'profile':
-        return <div className={styles.tabContent}>Profile View</div>;
+        return <div className={styles.tabContent}><ProfileSettings /></div>;
       default:
         return renderDashboardContent();
     }

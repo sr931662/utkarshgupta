@@ -27,7 +27,7 @@
 .uploadGrid {
   display: grid;
   gap: 2rem;
-  grid-template-columns: 1fr 1.5fr;
+  grid-template-columns: 1fr;
   margin-bottom: 2rem;
 }
 
@@ -62,9 +62,11 @@
   font-size: 1.1rem;
   font-weight: 500;
   color: #1e293b;
-  margin-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
 }
-
+.urlInputBox {
+  margin-bottom: 1rem;
+}
 .uploadBox p {
   color: #64748b;
   font-size: 0.9rem;
@@ -185,7 +187,7 @@
 .formGroup input,
 .formGroup textarea,
 .formGroup select {
-  width: 100%;
+  width: -webkit-fill-available;
   padding: 0.75rem;
   border: 1px solid #e2e8f0;
   border-radius: 0.5rem;
@@ -224,11 +226,40 @@
   left: 0.75rem;
   color: #94a3b8;
 }
-
+.inputAuto {
+  width: auto;
+}
 .authorInput input {
   padding-left: 2.5rem !important;
 }
+/* Add these new styles */
+.urlInputContainer {
+  padding: 20px;
+  background: var(--card-bg);
+  border-radius: 8px;
+  box-shadow: var(--shadow-sm);
+}
 
+.urlInputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.urlInput {
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 16px;
+  width: 100%;
+  background: var(--input-bg);
+  color: var(--text-primary);
+}
+
+.urlHelpText {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
 .authorAddButton,
 .authorRemoveButton {
   position: absolute;

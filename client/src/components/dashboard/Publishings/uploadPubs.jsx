@@ -2,12 +2,11 @@ import React, { useState } from 'react';
 import { useTheme } from '../../../context/ThemeContext';
 import { motion } from 'framer-motion';
 import styles from './uploadPubs.module.css';
-import { FiUpload, FiFileText, FiX, FiCheck, FiPlus, FiMinus, FiCalendar, FiUser } from 'react-icons/fi';
+import { FiLink, FiFileText, FiX, FiCheck, FiPlus, FiMinus, FiCalendar, FiUser } from 'react-icons/fi';
 
 const UploadPublications = () => {
   const { darkMode } = useTheme();
-  const [files, setFiles] = useState([]);
-  const [isDragging, setIsDragging] = useState(false);
+  const [publicationUrl, setPublicationUrl] = useState('');
   const [uploadProgress, setUploadProgress] = useState(null);
   const [uploadComplete, setUploadComplete] = useState(false);
   const [metadata, setMetadata] = useState({
@@ -20,48 +19,21 @@ const UploadPublications = () => {
     journal: '',
     volume: '',
     issue: '',
-    pages: ''
+    pages: '',
+    type: 'journal'
   });
 
-  const handleDragEnter = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
+  const handleUrlChange = (e) => {
+    setPublicationUrl(e.target.value);
   };
 
-  const handleDragLeave = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-  };
-
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-    
-    const droppedFiles = Array.from(e.dataTransfer.files);
-    if (droppedFiles) {
-      setFiles(droppedFiles);
+  const isValidUrl = (url) => {
+    try {
+      new URL(url);
+      return true;
+    } catch (e) {
+      return false;
     }
-  };
-
-  const handleFileChange = (e) => {
-    const selectedFiles = Array.from(e.target.files);
-    if (selectedFiles) {
-      setFiles(selectedFiles);
-    }
-  };
-
-  const handleRemoveFile = (index) => {
-    const updatedFiles = [...files];
-    updatedFiles.splice(index, 1);
-    setFiles(updatedFiles);
   };
 
   const handleMetadataChange = (e) => {
@@ -87,24 +59,66 @@ const UploadPublications = () => {
     }
   };
 
-  const simulateUpload = () => {
-    setUploadProgress(0);
-    setUploadComplete(false);
-    
-    const interval = setInterval(() => {
-      setUploadProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setUploadComplete(true);
-          return 100;
-        }
-        return prev + 10;
+  const handleUpload = async () => {
+    if (!isValidUrl(publicationUrl)) {
+      alert('Please enter a valid URL for the publication');
+      return;
+    }
+
+    try {
+      setUploadProgress(0);
+      setUploadComplete(false);
+
+      const authData = JSON.parse(localStorage.getItem('auth'));
+      const token = authData?.token;
+
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await fetch('http://localhost:5000/api/publications/create', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          title: metadata.title,
+          authors: metadata.authors.filter(a => a.trim() !== ''),
+          year: new Date(metadata.publicationDate).getFullYear(),
+          publicationDate: metadata.publicationDate,
+          abstract: metadata.abstract,
+          tags: metadata.keywords,
+          doi: metadata.doi,
+          journalOrConference: metadata.journal,
+          volume: metadata.volume,
+          issue: metadata.issue,
+          pages: metadata.pages,
+          type: metadata.type,
+          isFeatured: false,
+          url: publicationUrl
+        }),
+        credentials: 'include'
       });
-    }, 300);
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Upload success:', result);
+        setUploadProgress(100);
+        setUploadComplete(true);
+      } else {
+        const error = await response.json();
+        console.error('Upload failed:', error);
+        alert(`Upload failed: ${error.message}`);
+      }
+    } catch (error) {
+      console.error('Error uploading:', error);
+      alert(`An error occurred during upload: ${error.message}`);
+    }
   };
 
   const resetForm = () => {
-    setFiles([]);
+    setPublicationUrl('');
     setUploadProgress(null);
     setUploadComplete(false);
     setMetadata({
@@ -117,68 +131,21 @@ const UploadPublications = () => {
       journal: '',
       volume: '',
       issue: '',
-      pages: ''
+      pages: '',
+      type: 'journal'
     });
   };
 
   return (
     <div id='upload-content' className={`${styles.uploadContainer} ${darkMode ? styles.dark : ''}`}>
       <div className={styles.header}>
-        <h1><FiUpload size={24} /> Upload New Publication</h1>
-        <p>Add your research publications to the repository</p>
+        <h1><FiLink size={24} /> Add New Publication</h1>
+        <p>Add your research publications by providing their online links</p>
       </div>
 
       <div className={styles.uploadGrid}>
-        {/* File Upload Section */}
-        <motion.div 
-          className={`${styles.uploadSection} ${isDragging ? styles.dragging : ''}`}
-          onDragEnter={handleDragEnter}
-          onDragLeave={handleDragLeave}
-          onDragOver={handleDragOver}
-          onDrop={handleDrop}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <div className={styles.uploadBox}>
-            <FiUpload size={48} className={styles.uploadIcon} />
-            <h3>Drag & Drop your files here</h3>
-            <p>or</p>
-            <label className={styles.browseButton}>
-              Browse Files
-              <input 
-                type="file" 
-                multiple 
-                onChange={handleFileChange}
-                className={styles.fileInput}
-              />
-            </label>
-            <p className={styles.supportedFormats}>Supported formats: PDF, DOCX, PPTX</p>
-          </div>
-
-          {files.length > 0 && (
-            <div className={styles.fileList}>
-              <h4>Selected Files:</h4>
-              <ul>
-                {files.map((file, index) => (
-                  <li key={index}>
-                    <FiFileText size={18} />
-                    <span className={styles.fileName}>{file.name}</span>
-                    <span className={styles.fileSize}>
-                      {(file.size / (1024 * 1024)).toFixed(2)} MB
-                    </span>
-                    <button 
-                      onClick={() => handleRemoveFile(index)}
-                      className={styles.removeButton}
-                    >
-                      <FiX size={16} />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </motion.div>
+        {/* URL Input Section */}
+        
 
         {/* Metadata Form Section */}
         <motion.div 
@@ -202,6 +169,20 @@ const UploadPublications = () => {
           </div>
 
           <div className={styles.formGroup}>
+            <label>URL *</label>
+              <div className={styles.urlInputBox}>
+                
+                <div className={styles.urlInputGroup}>
+                  <input
+                    type="url"
+                    value={publicationUrl}
+                    onChange={handleUrlChange}
+                    placeholder="https://example.com/publication.pdf"
+                    className={styles.urlInput}
+                    required
+                  />
+                </div>
+              </div>
             <label>Authors *</label>
             {metadata.authors.map((author, index) => (
               <div key={index} className={styles.authorInput}>
@@ -287,13 +268,15 @@ const UploadPublications = () => {
 
           <div className={styles.formRow}>
             <div className={styles.formGroup}>
-              <label>Journal/Conference</label>
+              <label>Journal/Conference *</label>
               <input
                 type="text"
                 name="journal"
                 value={metadata.journal}
+                className={styles.inputAuto}
                 onChange={handleMetadataChange}
                 placeholder="Journal or conference name"
+                required
               />
             </div>
 
@@ -302,6 +285,7 @@ const UploadPublications = () => {
               <input
                 type="text"
                 name="volume"
+                className={styles.inputAuto}
                 value={metadata.volume}
                 onChange={handleMetadataChange}
                 placeholder="Volume number"
@@ -316,6 +300,7 @@ const UploadPublications = () => {
                 type="text"
                 name="issue"
                 value={metadata.issue}
+                className={styles.inputAuto}
                 onChange={handleMetadataChange}
                 placeholder="Issue number"
               />
@@ -327,6 +312,7 @@ const UploadPublications = () => {
                 type="text"
                 name="pages"
                 value={metadata.pages}
+                className={styles.inputAuto}
                 onChange={handleMetadataChange}
                 placeholder="e.g. 123-130"
               />
@@ -355,7 +341,7 @@ const UploadPublications = () => {
             </span>
             {uploadComplete && (
               <div className={styles.successMessage}>
-                <FiCheck size={20} /> Publication successfully uploaded!
+                <FiCheck size={20} /> Publication successfully added!
               </div>
             )}
           </div>
@@ -370,10 +356,17 @@ const UploadPublications = () => {
           </button>
           <button 
             className={styles.uploadButton}
-            onClick={simulateUpload}
-            disabled={files.length === 0 || !metadata.title || !metadata.authors[0] || !metadata.publicationDate || !metadata.abstract}
+            onClick={handleUpload}
+            disabled={
+              !publicationUrl || 
+              !metadata.title || 
+              !metadata.authors[0] || 
+              !metadata.publicationDate || 
+              !metadata.abstract ||
+              !metadata.journal
+            }
           >
-            Upload Publication
+            Add Publication
           </button>
         </div>
       </motion.div>

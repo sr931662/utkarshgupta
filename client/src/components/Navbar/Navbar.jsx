@@ -111,9 +111,9 @@ const Navbar = () => {
   return (
     <header className={`${styles.header} ${isAdminPortal ? styles.adminHeader : ''} ${darkMode ? styles.dark : ''}`}>
       <div className={styles.container}>
-        <Link to={isAdminPortal ? '/admin' : '/'} className={styles.logo}>
+        <Link to={'/'} className={styles.logo}>
           <span className={styles.logoText}>
-            {isAdminPortal ? 'ResearchAdmin' : 'ResearchHub'}
+            {isAdminPortal ? 'Admin' : 'Home'}
           </span>
           <span className={styles.logoDot}>.</span>
         </Link>

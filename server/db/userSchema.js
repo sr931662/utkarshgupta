@@ -1,55 +1,61 @@
-// models/User.js
-const mongoose = require("mongoose");
-const bcrypt = require("bcryptjs");
-const validator = require("validator");
+const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 
 const userSchema = new mongoose.Schema(
   {
-    email: {
-      type: String,
-      required: [true, "Email is required"],
-      unique: true,
-      trim: true,
-      lowercase: true,
-      validate: [validator.isEmail, "Invalid email format"],
-      index: true,
-    },
-    pass: {
-      type: String,
-      required: [true, "Password is required"],
-      minlength: [12, "Password must be at least 12 characters"],
-      select: false,
-    },
     name: {
       type: String,
-      required: [true, "Full name is required"],
+      required: true,
       trim: true,
-      maxlength: [50, "Name cannot exceed 50 characters"],
+    },
+    email: {
+      type: String,
+      required: true,
+      lowercase: true,
+      unique: true,
+      match: [/^\S+@\S+\.\S+$/, 'Invalid email format'],
+    },
+    password: {
+      type: String,
+      required: true,
+      minlength: 8,
+      select: false,
     },
     role: {
       type: String,
-      enum: ["admin", "moderator"],
-      default: "admin",
+      enum: ['superadmin', 'manager'],
+      required: true,
     },
-    lastLogin: {
-      type: Date,
-    },
-    passwordChangedAt: Date,
-    isActive: {
+    isApproved: {
       type: Boolean,
-      default: true,
+      default: false,
     },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
+    passwordResetToken: String,
+    passwordResetExpires: Date,
+    passwordChangedAt: Date,
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
 
-// Middleware: Hash password before saving
-userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
-  this.pass = await bcrypt.hash(this.pass, 12);
+userSchema.pre('save', async function (next) {
+  if (!this.isModified('password')) return next();
+  this.password = await bcrypt.hash(this.password, 12);
   next();
 });
-userSchema.methods.changedPasswordAfter = function(JWTTimestamp) {
+
+userSchema.methods.comparePassword = async function (candidatePassword) {
+  return await bcrypt.compare(candidatePassword, this.password);
+};
+
+userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
   if (this.passwordChangedAt) {
     const changedTimestamp = parseInt(
       this.passwordChangedAt.getTime() / 1000,
@@ -60,22 +66,14 @@ userSchema.methods.changedPasswordAfter = function(JWTTimestamp) {
   return false;
 };
 
-// Method to create password reset token
-userSchema.methods.createPasswordResetToken = function() {
+userSchema.methods.createPasswordResetToken = function () {
   const resetToken = crypto.randomBytes(32).toString('hex');
   this.passwordResetToken = crypto
     .createHash('sha256')
     .update(resetToken)
     .digest('hex');
-  this.passwordResetExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+  this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
   return resetToken;
 };
-// Method: Compare hashed password
-userSchema.methods.verifyPassword = async function (candidatePassword) {
-  return await bcrypt.compare(candidatePassword, this.pass);
-};
 
-// Indexes
-userSchema.index({ email: 1 }, { unique: true });
-
-module.exports = mongoose.model("User", userSchema);
+module.exports = mongoose.model('User', userSchema);

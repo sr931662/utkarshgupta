@@ -326,10 +326,6 @@ const ResearchInterest = () => {
             My approach combines technical analytics expertise with business acumen to deliver measurable impact. 
             I focus on translating complex data into clear strategic recommendations for product and business growth.
           </p>
-          <a href="#projects" className={styles.link} ref={linkRef}>
-            <span>View my analytical projects</span>
-            <i className="ri-arrow-right-line ml-2"></i>
-          </a>
         </div>
       </div>
     </section>

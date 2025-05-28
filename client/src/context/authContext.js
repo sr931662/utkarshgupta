@@ -1,130 +1,75 @@
-// src/context/authContext.js
 import { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
-import { jwtDecode } from 'jwt-decode';
-import { useNavigate } from 'react-router-dom';
-import  authAPI from './authAPI'
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const AuthContext = createContext();
 
-export const AuthProvider = ({ children }) => {
+export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [authError, setAuthError] = useState(null);
-  const [authSuccess, setAuthSuccess] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // Check auth status on initial load
+  // Initialize auth state
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      if (isTokenValid(token)) {
-        const decoded = jwtDecode(token);
-        setUser(decoded);
-        setIsAuthenticated(true);
-        setAuthToken(token); // Set for axios requests
-      } else {
-        localStorage.removeItem('token');
+    const initializeAuth = async () => {
+      try {
+        const authData = JSON.parse(localStorage.getItem('auth'));
+        
+        if (authData?.token && authData?.expiry > Date.now()) {
+          axios.defaults.headers.common['Authorization'] = `Bearer ${authData.token}`;
+          const { data } = await axios.get('http://localhost:5000/api/auth/me');
+          setToken(authData.token);
+          setUser(data.user);
+        }
+      } catch (err) {
+        localStorage.removeItem('auth');
+      } finally {
+        setLoading(false);
       }
-    }
-    setLoading(false);
+    };
+
+    initializeAuth();
   }, []);
 
-  const login = async (email, pass) => {
-    setLoading(true);
-    setAuthError(null);
-    try {
-      const data = await authAPI.login(email, pass); // Use authAPI instead of direct axios
-      setAuthToken(data.token);
-      const decoded = jwtDecode(data.token);
-      setUser(decoded);
-      setIsAuthenticated(true);
-      return data;
-    } catch (err) {
-      setAuthError(err.message || 'Login failed. Please check your credentials.');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
+  const login = async (token, userData) => {
+    const authData = {
+      token: token,
+      expiry: Date.now() + (7 * 24 * 60 * 60 * 1000) // 7 days
+    };
+    localStorage.setItem('auth', JSON.stringify(authData));
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    setToken(token);
+    setUser(userData);
+    navigate('/admin/dashboard');
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem('auth');
     delete axios.defaults.headers.common['Authorization'];
+    setToken(null);
     setUser(null);
-    setIsAuthenticated(false);
     navigate('/login');
   };
 
-  const forgotPassword = async (email) => {
-    setLoading(true);
-    setAuthError(null);
-    setAuthSuccess(null);
-    try {
-      await authAPI.forgotPassword(email); // You'll need to add this to authAPI.jsx
-      setAuthSuccess('Password reset link sent to your email!');
-    } catch (err) {
-      setAuthError(err.message || 'Failed to send reset link. Please try again.');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const resetPassword = async (token, newPassword) => {
-    setLoading(true);
-    setAuthError(null);
-    try {
-      const { data } = await axios.patch(`https://utkarshgupta-1.onrender.com/api/auth/resetPassword/${token}`, { password: newPassword });
-      setAuthSuccess('Password reset successfully! You can now login with your new password.');
-      return data;
-    } catch (err) {
-      setAuthError(err.response?.data?.message || 'Password reset failed. The link may have expired.');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Helper to set auth token for axios
-  const setAuthToken = (token) => {
-    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-  };
-
-  // Check if token is expired
-  const isTokenValid = (token) => {
-    try {
-      const decoded = jwtDecode(token);
-      return decoded.exp * 1000 > Date.now();
-    } catch (err) {
-      return false;
-    }
-  };
-
-  const clearMessages = () => {
-    setAuthError(null);
-    setAuthSuccess(null);
+  const value = {
+    user,
+    token,
+    loading,
+    login,
+    logout,
+    isAuthenticated: !!token,
+    isAdmin: user?.role === 'superadmin' || user?.role === 'manager'
   };
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      isAuthenticated, 
-      loading,
-      authError,
-      authSuccess,
-      login, 
-      logout,
-      forgotPassword,
-      resetPassword,
-      clearMessages,
-      setAuthError,
-      setAuthSuccess
-    }}>
-      {children}
+    <AuthContext.Provider value={value}>
+      {!loading && children}
     </AuthContext.Provider>
   );
-};
+}
 
-export const useAuth = () => useContext(AuthContext);
+export function useAuth() {
+  return useContext(AuthContext);
+}

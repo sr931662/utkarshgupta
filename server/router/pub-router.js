@@ -1,26 +1,41 @@
-// router/pub-router.js
 const express = require('express');
-const router = express.Router();
-const pubController = require('../controller/pub-controller');
-const authController = require('../controller/auth-controller');
+const multer = require('multer');
+const pubController = require('../controllers/pub-controller');
+const authController = require('../controllers/auth-controller');
+const authMid = require("../middlewares/auth-mid")
 
-// File upload middleware
-const { uploadPublicationFile } = pubController;
+const router = express.Router();
+
+// Configure Multer for file uploads
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB
+  },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === 'application/pdf' || 
+        file.mimetype === 'application/msword' ||
+        file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+      cb(null, true);
+    } else {
+      cb(new Error('Only PDF and Word documents are allowed'), false);
+    }
+  }
+});
 
 // Public routes
 router.get('/', pubController.getAllPublications);
-router.get('/counts', pubController.getPublicationCounts);
-router.get('/featured', pubController.getFeaturedPublications);
+router.get('/stats', pubController.getPublicationStats);
 router.get('/:id', pubController.getPublication);
 
 // Protected routes (require authentication)
-router.use(authController.protect);
+router.use(authMid.protect);
 
 // Admin-only routes
-router.use(authController.restrictTo('admin'));
+router.use(authMid.restrictTo('superadmin', 'manager'));
 
-router.post('/', uploadPublicationFile, pubController.createPublication);
-router.patch('/:id', uploadPublicationFile, pubController.updatePublication);
+router.post('/create', upload.single('file'), pubController.createPublication);
+router.patch('/:id', pubController.updatePublication);
 router.delete('/:id', pubController.deletePublication);
 
 module.exports = router;

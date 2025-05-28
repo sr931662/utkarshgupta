@@ -1,15 +1,19 @@
-// routes/auth-router.js
 const express = require('express');
-const authController = require('../controller/auth-controller');
+const {
+  login,
+  forgotPassword,
+  resetPassword,
+  getMe,
+  refreshToken
+} = require('../controllers/auth-controller');
+const authMid = require("../middlewares/auth-mid");
+
 const router = express.Router();
 
-// Auth Routes
-router.post('/register', authController.register); // Only for initial setup
-router.post('/login', authController.login);
-
-// Protected Routes (Require JWT)
-router.use(authController.protect);
-
-router.patch('/update-password', authController.updatePassword);
+router.post('/login', login);
+router.post('/forgotPassword', forgotPassword);
+router.patch('/resetPassword/:token', resetPassword);
+router.get('/me', authMid.protect, getMe);
+router.post('/refresh', refreshToken);
 
 module.exports = router;

@@ -403,7 +403,7 @@ const Contact = () => {
                   </div>
                   <div>
                     <h4 className={styles.infoHeading}>Email</h4>
-                    <p className={styles.infoText}>emily.richardson@stanford.edu</p>
+                    <p className={styles.infoText}>utkarsh.gupta@uconn.edu</p>
                   </div>
                 </div>
                 
@@ -413,7 +413,7 @@ const Contact = () => {
                   </div>
                   <div>
                     <h4 className={styles.infoHeading}>Phone</h4>
-                    <p className={styles.infoText}>+1 (650) 723-4000</p>
+                    <p className={styles.infoText}>+1 (860) 818-6602</p>
                   </div>
                 </div>
                 
@@ -437,35 +437,21 @@ const Contact = () => {
               <h3 className={styles.profilesTitle}>Academic Profiles</h3>
               
               <div className={styles.profilesList}>
-                <a href="#" className={styles.profileLink} ref={addToProfileLinksRef}>
-                  <FaGoogle />
-                  <i className="ri-google-fill mr-2"></i>
-                  <span>Google Scholar</span>
-                </a>
+                {/* <a href="#" className={styles.profileLink} ref={addToProfileLinksRef}>
+                  <span><FaGoogle /> Google Scholar</span>
+                </a> */}
                 
                 <a href="https://www.linkedin.com/in/utkarshgupta8/" className={styles.profileLink} ref={addToProfileLinksRef}>
-                  <FaLinkedinIn />
-                  <i className="ri-linkedin-fill mr-2"></i>
-                  <span>LinkedIn</span>
+                  <span><FaLinkedinIn /> LinkedIn</span>
+                </a>
+                
+                {/* <a href="#" className={styles.profileLink} ref={addToProfileLinksRef}>
+                  <span><FaTwitter /> Twitter</span>
                 </a>
                 
                 <a href="#" className={styles.profileLink} ref={addToProfileLinksRef}>
-                  <FaGithub />
-                  <i className="ri-github-fill mr-2"></i>
-                  <span>GitHub</span>
-                </a>
-                
-                <a href="#" className={styles.profileLink} ref={addToProfileLinksRef}>
-                  <FaTwitter />
-                  <i className="ri-twitter-x-fill mr-2"></i>
-                  <span>Twitter</span>
-                </a>
-                
-                <a href="#" className={styles.profileLink} ref={addToProfileLinksRef}>
-                  <FaResearchgate />
-                  <i className="ri-research-line mr-2"></i>
-                  <span>ResearchGate</span>
-                </a>
+                  <span><FaResearchgate /> ResearchGate</span>
+                </a> */}
               </div>
             </div>
           </div>

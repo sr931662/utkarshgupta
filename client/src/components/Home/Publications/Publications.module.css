@@ -51,6 +51,9 @@
   line-height: 1.6;
   transition: color 0.3s ease;
 }
+.dark .sectionSubtitle,.dark .filterButton {
+  color: white;
+}
 
 .filterContainer {
   display: flex;
