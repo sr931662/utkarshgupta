@@ -27,7 +27,7 @@ useEffect(() => {
       const authData = JSON.parse(localStorage.getItem('auth'));
       if (authData?.token) {
         // Verify token with backend
-        const response = await fetch('http://localhost:5000/api/auth/me', {
+        const response = await fetch('https://utkarshgupta-1.onrender.com/api/auth/me', {
           headers: {
             'Authorization': `Bearer ${authData.token}`
           }
