@@ -9,6 +9,7 @@ const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const { darkMode, toggleDarkMode } = useTheme();
+  // Example excerpt from inside Navbar
   const { user, isAuthenticated, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -49,11 +50,14 @@ const Navbar = () => {
     setUserDropdownOpen(!userDropdownOpen);
   };
 
-  const handleLogout = () => {
-    logout();
-    setUserDropdownOpen(false);
-    navigate('/');
-  };
+  // Logout handler
+const handleLogout = async () => {
+  try {
+    await logout();
+  } catch (err) {
+    console.error("Logout failed", err);
+  }
+};
 
   const handleThemeToggle = () => {
     gsap.to(toggleRef.current, {
@@ -287,6 +291,9 @@ const Navbar = () => {
               <a href="/#contact" className={styles.mobileNavLink} onClick={toggleMobileMenu}>
                 <span className={styles.mobileLinkText}>Get in touch</span>
               </a>
+            <Link to="/login" className={styles.mobileAdminLogin} onClick={toggleMobileMenu}>
+              <span className={styles.mobileLinkText}>Admin Portal</span>
+            </Link>
             </>
           ) : (
             <Link to="/login" className={styles.mobileAdminLogin} onClick={toggleMobileMenu}>

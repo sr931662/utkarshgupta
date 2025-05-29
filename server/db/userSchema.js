@@ -4,6 +4,7 @@ const crypto = require('crypto');
 
 const userSchema = new mongoose.Schema(
   {
+    // Auth fields
     name: {
       type: String,
       required: true,
@@ -39,41 +40,278 @@ const userSchema = new mongoose.Schema(
     passwordResetToken: String,
     passwordResetExpires: Date,
     passwordChangedAt: Date,
+    passwordResetOTP: String,    // For OTP-based reset (add this if not present)
+    otpExpires: Date,           // For OTP expiration (add this if not present)
+
+    // Personal information
+    professionalTitle: String,
+    profileImage: String, // URL
+    gender: {
+      type: String,
+      enum: ['male', 'female'],
+    },
+    dateOfBirth: Date,
+    phoneNumber: String,
+    alternateEmail: String,
+    socialMedia: {
+      twitter: String,
+      linkedin: String,
+      github: String,
+      researchGate: String,
+      googleScholar: String,
+      ORCID: String,
+    },
+    
+    // Affiliation details
+    affiliation: {
+      institution: String,
+      department: String,
+      position: String,
+      faculty: String,
+      joiningDate: Date,
+      officeLocation: String,
+      officeHours: String,
+    },
+    
+    // Location information
+    location: {
+      address: String,
+      city: String,
+      state: String,
+      country: String,
+      postalCode: String,
+      timeZone: String,
+    },
+    
+    // Professional details
+    bio: String,
+    education: [
+      {
+        degree: String,
+        field: String,
+        institution: String,
+        grade: String,
+        startdate: String,
+        enddate: String,
+        description: String,
+      }
+    ],
+    crashcourses: [
+      {
+        course: String,
+        field: String,
+        organization: String
+      }
+    ],
+    workExperience: [
+      {
+        position: String,
+        organization: String,
+        startDate: Date,
+        endDate: Date,
+        current: Boolean,
+        description: String,
+      }
+    ],
+    awards: [
+      {
+        title: String,
+        year: Number,
+        description: String,
+      }
+    ],
+    
+    // Skills and interests
+    researchInterests: [String],
+    teachingInterests: [String],
+    skills: [String],
+    technicalSkills: [
+      {
+        name: String,
+        level: {
+          type: String,
+          enum: ['beginner', 'intermediate', 'advanced', 'expert'],
+        }
+      }
+    ],
+    languages: [
+      {
+        name: String,
+        proficiency: {
+          type: String,
+          enum: ['basic', 'conversational', 'professional', 'fluent', 'native'],
+        }
+      }
+    ],
+    hobbies: [String],
+    
+    // Settings and preferences
+    notificationPreferences: {
+      emailNotifications: { type: Boolean, default: true },
+      pushNotifications: { type: Boolean, default: true },
+    },
+    certificates: [
+      {
+      title: String,
+      organization: String,
+      issueDate: String,
+      certID: String,
+      credentialslink: String,
+      }
+    ],
+    
+    // Metadata
+    lastActive: Date,
+    profileCompletion: {
+      type: Number,
+      min: 0,
+      max: 100,
+      default: 0,
+    },
   },
   {
     timestamps: true,
   }
 );
 
+// Middleware for hashing password
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
   this.password = await bcrypt.hash(this.password, 12);
   next();
 });
 
+// Instance method for checking password
 userSchema.methods.comparePassword = async function (candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
+// Generate OTP
+userSchema.methods.createOTP = function() {
+  const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
+  this.passwordResetOTP = otp;
+  this.otpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+  return otp;
+};
 
+// Verify OTP
+userSchema.methods.verifyOTP = function(otp) {
+  return this.passwordResetOTP === otp && this.otpExpires > Date.now();
+};
+
+// Clear OTP
+userSchema.methods.clearOTP = function() {
+  this.passwordResetOTP = undefined;
+  this.otpExpires = undefined;
+};
+// Check if password changed after JWT was issued
 userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
   if (this.passwordChangedAt) {
-    const changedTimestamp = parseInt(
-      this.passwordChangedAt.getTime() / 1000,
-      10
-    );
+    const changedTimestamp = parseInt(this.passwordChangedAt.getTime() / 1000, 10);
     return JWTTimestamp < changedTimestamp;
   }
   return false;
 };
 
+// Generate password reset token
 userSchema.methods.createPasswordResetToken = function () {
   const resetToken = crypto.randomBytes(32).toString('hex');
-  this.passwordResetToken = crypto
-    .createHash('sha256')
-    .update(resetToken)
-    .digest('hex');
-  this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+  this.passwordResetToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+  this.passwordResetExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
   return resetToken;
 };
 
 module.exports = mongoose.model('User', userSchema);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// const mongoose = require('mongoose');
+// const bcrypt = require('bcryptjs');
+// const crypto = require('crypto');
+
+// const userSchema = new mongoose.Schema(
+//   {
+//     name: {
+//       type: String,
+//       required: true,
+//       trim: true,
+//     },
+//     email: {
+//       type: String,
+//       required: true,
+//       lowercase: true,
+//       unique: true,
+//       match: [/^\S+@\S+\.\S+$/, 'Invalid email format'],
+//     },
+//     password: {
+//       type: String,
+//       required: true,
+//       minlength: 8,
+//       select: false,
+//     },
+//     role: {
+//       type: String,
+//       enum: ['superadmin', 'manager'],
+//       required: true,
+//     },
+//     isApproved: {
+//       type: Boolean,
+//       default: false,
+//     },
+//     createdBy: {
+//       type: mongoose.Schema.Types.ObjectId,
+//       ref: 'User',
+//       default: null,
+//     },
+//     passwordResetToken: String,
+//     passwordResetExpires: Date,
+//     passwordChangedAt: Date,
+//   },
+//   {
+//     timestamps: true,
+//   }
+// );
+
+// userSchema.pre('save', async function (next) {
+//   if (!this.isModified('password')) return next();
+//   this.password = await bcrypt.hash(this.password, 12);
+//   next();
+// });
+
+// userSchema.methods.comparePassword = async function (candidatePassword) {
+//   return await bcrypt.compare(candidatePassword, this.password);
+// };
+
+// userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
+//   if (this.passwordChangedAt) {
+//     const changedTimestamp = parseInt(
+//       this.passwordChangedAt.getTime() / 1000,
+//       10
+//     );
+//     return JWTTimestamp < changedTimestamp;
+//   }
+//   return false;
+// };
+
+// userSchema.methods.createPasswordResetToken = function () {
+//   const resetToken = crypto.randomBytes(32).toString('hex');
+//   this.passwordResetToken = crypto
+//     .createHash('sha256')
+//     .update(resetToken)
+//     .digest('hex');
+//   this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+//   return resetToken;
+// };
+
+// module.exports = mongoose.model('User', userSchema);

@@ -33,7 +33,6 @@ const Dashboard = () => {
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: <FiHome size={20} /> },
     { id: 'upload', label: 'Upload Content', icon: <FiUpload size={20} /> },
-    { id: 'settings', label: 'Settings', icon: <FiSettings size={20} /> },
     { id: 'profile', label: 'Profile', icon: <FiUser size={20} /> },
   ];
 
@@ -65,8 +64,6 @@ const Dashboard = () => {
     switch (activeTab) {
       case 'upload':
         return <div className={styles.tabContent}><UploadPublications /></div>;
-      case 'settings':
-        return <div className={styles.tabContent}>Settings View</div>;
       case 'profile':
         return <div className={styles.tabContent}><ProfileSettings /></div>;
       default:

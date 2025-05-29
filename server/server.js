@@ -6,6 +6,7 @@ const authRouter = require('./router/auth-router');
 const pubRouter = require('./router/pub-router'); // Add publications router
 const path = require('path');
 const morgan = require('morgan'); // For request logging
+const otpRoutes = require('./router/otp-router');
 
 // Initialize app
 const app = express();
@@ -39,7 +40,6 @@ app.get('/', (req, res) => {
 // API routes
 app.use('/api/auth', authRouter);
 app.use('/api/publications', pubRouter); // Add publications routes
-
 // 404 Handler
 app.use('*', (req, res) => {
   res.status(404).json({

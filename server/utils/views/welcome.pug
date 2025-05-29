@@ -1,10 +1,20 @@
-//- views/emails/welcome.pug
+//- //- views/emails/welcome.pug
+//- doctype html
+//- html
+//-   head
+//-     meta(charset='UTF-8')
+//-     title= subject
+//-   body
+//-     p Hi #{firstName},
+//-     p Welcome to our platform! We're glad to have you 🎉
+//-     p Start exploring now!
+
 doctype html
 html
   head
     meta(charset='UTF-8')
     title= subject
   body
-    p Hi #{firstName},
-    p Welcome to our platform! We're glad to have you 🎉
-    p Start exploring now!
+    h1 Welcome #{firstName}!
+    p Thank you for joining our platform.
+    p We're excited to have you on board!

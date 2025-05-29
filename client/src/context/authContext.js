@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { authAPI } from './authAPI';
 
 const AuthContext = createContext();
 
@@ -14,21 +15,27 @@ export function AuthProvider({ children }) {
   // Initialize auth state
   useEffect(() => {
     const initializeAuth = async () => {
+      const authData = JSON.parse(localStorage.getItem('auth'));
+      const isTokenValid = authData?.token && authData?.expiry > Date.now();
+
+      if (!isTokenValid) {
+        localStorage.removeItem('auth');
+        setLoading(false);
+        return;
+      }
+
       try {
-        const authData = JSON.parse(localStorage.getItem('auth'));
-        
-        if (authData?.token && authData?.expiry > Date.now()) {
-          axios.defaults.headers.common['Authorization'] = `Bearer ${authData.token}`;
-          const { data } = await axios.get('http://localhost:5000/api/auth/me');
-          setToken(authData.token);
-          setUser(data.user);
-        }
+        setToken(authData.token);
+        const { user } = await authAPI.getMe(); // only call if token is valid
+        setUser(user);
       } catch (err) {
+        console.error("Failed to fetch user:", err);
         localStorage.removeItem('auth');
       } finally {
         setLoading(false);
       }
     };
+
 
     initializeAuth();
   }, []);
