@@ -47,7 +47,6 @@ const Publications = () => {
         }
 
         const data = await response.json();
-        console.log('API response:', data);
 
         // Handle different response formats
         let publicationsArray = [];

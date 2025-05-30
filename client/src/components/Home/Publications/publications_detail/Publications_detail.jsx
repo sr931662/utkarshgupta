@@ -40,7 +40,7 @@ const PublicationsDetail = () => {
         }
 
         const data = await response.json();
-        console.log('Publication detail API response:', data);
+        // console.log('Publication detail API response:', data);
 
         // Handle different response formats
         let publicationData = data?.data?.publication || data?.publication || data;

@@ -254,7 +254,7 @@ const LiteratureUploader = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     // Handle form submission with files
-    console.log('Submitting literature:', files);
+    // console.log('Submitting literature:', files);
     // Here you would typically send the files to your backend
   };
 
