@@ -9,31 +9,36 @@ const {
   getMe,
   checkEmail,
   sendOTP,
-  verifyOTPAndResetPassword
+  verifyOTPAndResetPassword,
+  updateMe
 } = require('../controllers/auth-controller');
 
 const authMid = require("../middlewares/auth-mid");
 const router = express.Router();
 
+// Protected routes (require authentication)
+router.use(authMid.protect);
+// Admin routes
+router.use(authMid.restrictTo('superadmin', 'manager'));
 // Public routes
 router.post('/login', login);
 router.post('/send-otp', sendOTP);
 router.post('/verify-otp-reset', verifyOTPAndResetPassword);
 router.post('/refresh', refreshToken);
 router.post('/check-email', checkEmail);
+router.route('/me')
+  .get(authMid.checkActive, getMe)
+  .put(authMid.checkActive, updateMe);  // Add PUT route
+// router.put('/me', authMid.checkActive, updateMe);
 
 // Optional token-based reset (only keep if needed)
 // router.post('/forgotPassword', forgotPassword);
 // router.patch('/resetPassword/:token', resetPassword);
 
-// Protected routes (require authentication)
-router.use(authMid.protect);
 
 router.get('/me', authMid.checkActive, getMe);
 router.patch('/updatePassword', authMid.checkActive, updatePassword);
 
-// Admin routes
-router.use(authMid.restrictTo('superadmin', 'manager'));
 
 // You can add admin-specific routes here
 

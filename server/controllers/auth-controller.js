@@ -762,3 +762,73 @@ exports.refreshToken = async (req, res) => {
     res.status(401).json({ status: 'fail', message: 'Invalid or expired token' });
   }
 };
+// Add this to auth-controller.js
+// auth-controller.js
+exports.updateMe = async (req, res) => {
+  try {
+    // Filter out fields that shouldn't be updated
+    const filteredBody = { ...req.body };
+    const excludedFields = ['password', 'role', 'isApproved', 'createdBy'];
+    excludedFields.forEach(field => delete filteredBody[field]);
+    
+    // Convert string dates to Date objects if needed
+    if (filteredBody.dateOfBirth) {
+      filteredBody.dateOfBirth = new Date(filteredBody.dateOfBirth);
+    }
+    if (filteredBody.affiliation?.joiningDate) {
+      filteredBody.affiliation.joiningDate = new Date(filteredBody.affiliation.joiningDate);
+    }
+    
+    // Handle profile image separately if needed
+    if (req.file) {
+      filteredBody.profileImage = req.file.path;
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user.id,
+      filteredBody,
+      { 
+        new: true,
+        runValidators: true
+      }
+    ).select('-password -passwordResetToken -passwordResetExpires -passwordResetOTP -otpExpires');
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        user: updatedUser
+      }
+    });
+  } catch (err) {
+    console.error('Error updating user:', err);
+    res.status(400).json({
+      status: 'fail',
+      message: err.message || 'Failed to update profile'
+    });
+  }
+};
+// exports.updateMe = async (req, res) => {
+//   try {
+//     // Filter out unwanted fields that shouldn't be updated
+//     const filteredBody = { ...req.body };
+//     delete filteredBody.password;
+//     delete filteredBody.role;
+//     delete filteredBody.isApproved;
+
+//     const updatedUser = await User.findByIdAndUpdate(
+//       req.user.id,
+//       filteredBody,
+//       { new: true, runValidators: true }
+//     ).select('-password -passwordResetToken -passwordResetExpires');
+
+//     res.status(200).json({
+//       status: 'success',
+//       data: { user: updatedUser }
+//     });
+//   } catch (err) {
+//     res.status(400).json({
+//       status: 'fail',
+//       message: err.message
+//     });
+//   }
+// };

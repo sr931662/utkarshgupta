@@ -240,7 +240,7 @@ const Publications = () => {
                   </p>
                   <h3 className={styles.publicationTitle}>
                     {publication.id ? (
-                      <Link to={`/publications/${publication.id}`}>{publication.title}</Link>
+                      <Link to={publication.url}>{publication.title}</Link>
                     ) : (
                       publication.title
                     )}

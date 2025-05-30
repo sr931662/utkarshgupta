@@ -31,7 +31,6 @@ const Dashboard = () => {
   }, []);
 
   const navItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: <FiHome size={20} /> },
     { id: 'upload', label: 'Upload Content', icon: <FiUpload size={20} /> },
     { id: 'profile', label: 'Profile', icon: <FiUser size={20} /> },
   ];
@@ -66,8 +65,6 @@ const Dashboard = () => {
         return <div className={styles.tabContent}><UploadPublications /></div>;
       case 'profile':
         return <div className={styles.tabContent}><ProfileSettings /></div>;
-      default:
-        return renderDashboardContent();
     }
   };
 

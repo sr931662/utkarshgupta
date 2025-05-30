@@ -74,28 +74,52 @@ exports.restrictTo = (...roles) => {
 };
 
 // Middleware to check if user is active
+// auth-mid.js - Fix the checkActive middleware
 exports.checkActive = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id);
     if (!user) {
-      return res.status(404).json({
+      return res.status(401).json({
         status: 'fail',
         message: 'User not found'
       });
     }
-
+    
     // Update last active timestamp
     user.lastActive = Date.now();
     await user.save({ validateBeforeSave: false });
-
+    
     next();
   } catch (err) {
+    console.error('Error in checkActive middleware:', err);
     res.status(500).json({
       status: 'error',
       message: 'Something went wrong checking user activity'
     });
   }
 };
+// exports.checkActive = async (req, res, next) => {
+//   try {
+//     const user = await User.findById(req.user.id);
+//     if (!user) {
+//       return res.status(404).json({
+//         status: 'fail',
+//         message: 'User not found'
+//       });
+//     }
+
+//     // Update last active timestamp
+//     user.lastActive = Date.now();
+//     await user.save({ validateBeforeSave: false });
+
+//     next();
+//   } catch (err) {
+//     res.status(500).json({
+//       status: 'error',
+//       message: 'Something went wrong checking user activity'
+//     });
+//   }
+// };
 
 
 

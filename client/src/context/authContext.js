@@ -12,6 +12,11 @@ export function AuthProvider({ children }) {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Add this function
+  const updateUser = (updatedUserData) => {
+    setUser(prev => ({ ...prev, ...updatedUserData }));
+  };
+
   // Initialize auth state
   useEffect(() => {
     const initializeAuth = async () => {
@@ -65,6 +70,7 @@ export function AuthProvider({ children }) {
     token,
     loading,
     login,
+    updateUser, // Make sure this is included
     logout,
     isAuthenticated: !!token,
     isAdmin: user?.role === 'superadmin' || user?.role === 'manager'
