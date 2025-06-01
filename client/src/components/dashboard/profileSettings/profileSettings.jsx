@@ -3,7 +3,7 @@ import { useTheme } from '../../../context/ThemeContext';
 import { useAuth } from '../../../context/authContext';
 import { motion } from 'framer-motion';
 import styles from './profileSettings.module.css';
-import api from '../../../context/authAPI';
+import { authAPI } from '../../../context/authAPI';
 import { 
   FiUser, FiMail, FiLock, FiSave, FiEdit, FiCamera,
   FiLinkedin, FiGithub, FiTwitter, FiCalendar, FiBriefcase,
@@ -136,80 +136,91 @@ const ProfileSettings = () => {
 
   const [avatarPreview, setAvatarPreview] = useState(null);
 
-  // Load user data
-  useEffect(() => {
-    const loadUserData = async () => {
-      setIsLoading(true);
-      try {
-        const { data } = await api.get('http://localhost:5000/api/auth/me');
-        setFormData({
-          name: data.user.name || '',
-          email: data.user.email || '',
-          professionalTitle: data.user.professionalTitle || '',
-          profileImage: data.user.profileImage || '',
-          gender: data.user.gender || '',
-          dateOfBirth: data.user.dateOfBirth || '',
-          phoneNumber: data.user.phoneNumber || '',
-          alternateEmail: data.user.alternateEmail || '',
-          bio: data.user.bio || '',
-          
-          socialMedia: data.user.socialMedia || {
-            twitter: '',
-            linkedin: '',
-            github: '',
-            researchGate: '',
-            googleScholar: '',
-            ORCID: ''
-          },
-          
-          affiliation: data.user.affiliation || {
-            institution: '',
-            department: '',
-            position: '',
-            faculty: '',
-            joiningDate: '',
-            officeLocation: '',
-            officeHours: ''
-          },
-          
-          location: data.user.location || {
-            address: '',
-            city: '',
-            state: '',
-            country: '',
-            postalCode: '',
-            timeZone: ''
-          },
-          
-          education: data.user.education || [],
-          crashcourses: data.user.crashcourses || [],
-          workExperience: data.user.workExperience || [],
-          awards: data.user.awards || [],
-          researchInterests: data.user.researchInterests || [],
-          teachingInterests: data.user.teachingInterests || [],
-          skills: data.user.skills || [],
-          technicalSkills: data.user.technicalSkills || [],
-          languages: data.user.languages || [],
-          hobbies: data.user.hobbies || [],
-          certificates: data.user.certificates || [],
-          
-          notificationPreferences: data.user.notificationPreferences || {
-            emailNotifications: true,
-            pushNotifications: true
-          }
-        });
-      } catch (error) {
-        console.error('Failed to load user data:', error);
-        alert(error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
 
-    if (user) {
-      loadUserData();
+// Load user data
+useEffect(() => {
+  const loadUserData = async () => {
+    setIsLoading(true);
+    try {
+      // Use your authAPI instead of direct axios call
+      const response = await authAPI.getMe();
+      
+      // Check if response has data and user properties
+      const userData = response?.user || response?.data?.user || response;
+      
+      if (!userData) {
+        throw new Error('User data not found in response');
+      }
+
+      setFormData({
+        name: userData.name || '',
+        email: userData.email || '',
+        professionalTitle: userData.professionalTitle || '',
+        profileImage: userData.profileImage || '',
+        gender: userData.gender || '',
+        dateOfBirth: userData.dateOfBirth || '',
+        phoneNumber: userData.phoneNumber || '',
+        alternateEmail: userData.alternateEmail || '',
+        bio: userData.bio || '',
+        
+        socialMedia: userData.socialMedia || {
+          twitter: '',
+          linkedin: '',
+          github: '',
+          researchGate: '',
+          googleScholar: '',
+          ORCID: ''
+        },
+        
+        affiliation: userData.affiliation || {
+          institution: '',
+          department: '',
+          position: '',
+          faculty: '',
+          joiningDate: '',
+          officeLocation: '',
+          officeHours: ''
+        },
+        
+        location: userData.location || {
+          address: '',
+          city: '',
+          state: '',
+          country: '',
+          postalCode: '',
+          timeZone: ''
+        },
+        
+        education: userData.education || [],
+        crashcourses: userData.crashcourses || [],
+        workExperience: userData.workExperience || [],
+        awards: userData.awards || [],
+        researchInterests: userData.researchInterests || [],
+        teachingInterests: userData.teachingInterests || [],
+        skills: userData.skills || [],
+        technicalSkills: userData.technicalSkills || [],
+        languages: userData.languages || [],
+        hobbies: userData.hobbies || [],
+        certificates: userData.certificates || [],
+        
+        notificationPreferences: userData.notificationPreferences || {
+          emailNotifications: true,
+          pushNotifications: true
+        }
+      });
+    } catch (error) {
+      console.error('Failed to load user data:', error);
+      alert(error.message || 'Failed to load profile data');
+    } finally {
+      setIsLoading(false);
     }
-  }, [user]);
+  };
+
+  if (user) {
+    loadUserData();
+  }
+}, [user]);
+
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -550,16 +561,7 @@ const parseInputDateToISO = (inputDate) => {
     }));
   };
 
-  // const handleSubmit = (e) => {
-  //   e.preventDefault();
-  //   const updatedData = {
-  //     ...formData,
-  //     ...(avatarPreview && { profileImage: avatarPreview })
-  //   };
-  //   updateUser(updatedData);
-  //   setEditMode(false);
-  // };
-// Form submission
+
 const handleSubmit = async (e) => {
   e.preventDefault();
   
@@ -606,22 +608,22 @@ const handleSubmit = async (e) => {
       }
     });
 
-    // Make API call to update profile
-    const { data } = await api.put('http://localhost:5000/api/auth/me', updatedData);
+    // Make API call to update profile using authAPI.updateProfile
+    const data = await authAPI.updateProfile('/auth/me', updatedData);
     
     // Update user in context and local state
     if (updateUser && typeof updateUser === 'function') {
-      updateUser(data.user);
+      updateUser(data.user || data); // Handle both response formats
     } else {
       console.warn('updateUser function not available - using local state fallback');
       // Fallback: Update local state if context update fails
       setFormData(prev => ({
         ...prev,
-        ...data.user,
+        ...(data.user || data),
         // Preserve any local state that might not be in the response
-        socialMedia: data.user.socialMedia || prev.socialMedia,
-        affiliation: data.user.affiliation || prev.affiliation,
-        location: data.user.location || prev.location
+        socialMedia: (data.user || data).socialMedia || prev.socialMedia,
+        affiliation: (data.user || data).affiliation || prev.affiliation,
+        location: (data.user || data).location || prev.location
       }));
     }
     
@@ -650,6 +652,8 @@ const handleSubmit = async (e) => {
       }
     } else if (error.request) {
       errorMessage = 'Network error. Please check your connection.';
+    } else {
+      errorMessage = error.message || 'An unexpected error occurred';
     }
     
     alert(errorMessage);
@@ -658,6 +662,115 @@ const handleSubmit = async (e) => {
     setIsSaving(false);
   }
 };
+
+  // const handleSubmit = (e) => {
+  //   e.preventDefault();
+  //   const updatedData = {
+  //     ...formData,
+  //     ...(avatarPreview && { profileImage: avatarPreview })
+  //   };
+  //   updateUser(updatedData);
+  //   setEditMode(false);
+  // };
+// Form submission
+// const handleSubmit = async (e) => {
+//   e.preventDefault();
+  
+//   // Validate form before submission
+//   if (!validateForm()) return;
+  
+//   setIsSaving(true);
+  
+//   try {
+//     // Prepare updated data
+//     const updatedData = {
+//       ...formData,
+//       ...(avatarPreview && { profileImage: avatarPreview }),
+      
+//       // Ensure dates are properly formatted for backend
+//       dateOfBirth: formData.dateOfBirth ? new Date(formData.dateOfBirth).toISOString() : null,
+//       affiliation: {
+//         ...formData.affiliation,
+//         joiningDate: formData.affiliation.joiningDate 
+//           ? new Date(formData.affiliation.joiningDate).toISOString() 
+//           : null
+//       }
+//     };
+
+//     // Clean up empty arrays and objects
+//     Object.keys(updatedData).forEach(key => {
+//       if (Array.isArray(updatedData[key]) && updatedData[key].length === 0) {
+//         delete updatedData[key];
+//       }
+//       if (typeof updatedData[key] === 'object' && updatedData[key] !== null) {
+//         // Clean nested objects
+//         Object.keys(updatedData[key]).forEach(nestedKey => {
+//           if (updatedData[key][nestedKey] === '' || 
+//               updatedData[key][nestedKey] === null || 
+//               updatedData[key][nestedKey] === undefined) {
+//             delete updatedData[key][nestedKey];
+//           }
+//         });
+        
+//         // Remove empty objects
+//         if (Object.keys(updatedData[key]).length === 0) {
+//           delete updatedData[key];
+//         }
+//       }
+//     });
+
+//     // Make API call to update profile
+//     const { data } = await authAPI.put('http://localhost:5000/api/auth/me', updatedData);
+    
+//     // Update user in context and local state
+//     if (updateUser && typeof updateUser === 'function') {
+//       updateUser(data.user);
+//     } else {
+//       console.warn('updateUser function not available - using local state fallback');
+//       // Fallback: Update local state if context update fails
+//       setFormData(prev => ({
+//         ...prev,
+//         ...data.user,
+//         // Preserve any local state that might not be in the response
+//         socialMedia: data.user.socialMedia || prev.socialMedia,
+//         affiliation: data.user.affiliation || prev.affiliation,
+//         location: data.user.location || prev.location
+//       }));
+//     }
+    
+//     // Reset edit mode and avatar preview
+//     setEditMode(false);
+//     setAvatarPreview(null);
+    
+//     // Show success feedback
+//     alert('Profile updated successfully!');
+    
+//   } catch (error) {
+//     console.error('Failed to update profile:', error);
+    
+//     // Enhanced error handling
+//     let errorMessage = 'Failed to update profile. Please try again.';
+    
+//     if (error.response) {
+//       if (error.response.status === 401) {
+//         errorMessage = 'Session expired. Please log in again.';
+//       } else if (error.response.status === 400) {
+//         errorMessage = error.response.data.message || 'Invalid data. Please check your inputs.';
+//       } else if (error.response.status === 500) {
+//         errorMessage = 'Server error. Please try again later.';
+//       } else if (error.response.data?.message) {
+//         errorMessage = error.response.data.message;
+//       }
+//     } else if (error.request) {
+//       errorMessage = 'Network error. Please check your connection.';
+//     }
+    
+//     alert(errorMessage);
+    
+//   } finally {
+//     setIsSaving(false);
+//   }
+// };
 // const handleSubmit = async (e) => {
 //   e.preventDefault();
 //   if (!validateForm()) return;

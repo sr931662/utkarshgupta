@@ -20,42 +20,74 @@ export function AuthProvider({ children }) {
   // Initialize auth state
   useEffect(() => {
     const initializeAuth = async () => {
-      const authData = JSON.parse(localStorage.getItem('auth'));
-      const isTokenValid = authData?.token && authData?.expiry > Date.now();
+  const authData = JSON.parse(localStorage.getItem('auth'));
+  const isTokenValid = authData?.token && authData?.expiry > Date.now();
 
-      if (!isTokenValid) {
-        localStorage.removeItem('auth');
-        setLoading(false);
-        return;
-      }
+  if (!isTokenValid) {
+    localStorage.removeItem('auth');
+    setLoading(false);
+    return;
+  }
 
-      try {
-        setToken(authData.token);
-        const { user } = await authAPI.getMe(); // only call if token is valid
-        setUser(user);
-      } catch (err) {
-        console.error("Failed to fetch user:", err);
-        localStorage.removeItem('auth');
-      } finally {
-        setLoading(false);
-      }
-    };
+  try {
+    setToken(authData.token);
+    const response = await authAPI.getMe();
+    setUser(response.user || response.data?.user || response);
+  } catch (err) {
+    console.error("Failed to fetch user:", err);
+    localStorage.removeItem('auth');
+  } finally {
+    setLoading(false);
+  }
+};
+    // const initializeAuth = async () => {
+    //   const authData = JSON.parse(localStorage.getItem('auth'));
+    //   const isTokenValid = authData?.token && authData?.expiry > Date.now();
+
+    //   if (!isTokenValid) {
+    //     localStorage.removeItem('auth');
+    //     setLoading(false);
+    //     return;
+    //   }
+
+    //   try {
+    //     setToken(authData.token);
+    //     const { user } = await authAPI.getMe(); // only call if token is valid
+    //     setUser(user);
+    //   } catch (err) {
+    //     console.error("Failed to fetch user:", err);
+    //     localStorage.removeItem('auth');
+    //   } finally {
+    //     setLoading(false);
+    //   }
+    // };
 
 
     initializeAuth();
   }, []);
-
-  const login = async (token, userData) => {
-    const authData = {
-      token: token,
-      expiry: Date.now() + (7 * 24 * 60 * 60 * 1000) // 7 days
-    };
-    localStorage.setItem('auth', JSON.stringify(authData));
-    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    setToken(token);
-    setUser(userData);
-    navigate('/admin/dashboard');
+// In your login function:
+const login = async (token, userData) => {
+  const authData = {
+    token: token,
+    expiry: Date.now() + (7 * 24 * 60 * 60 * 1000) // 7 days
   };
+  localStorage.setItem('auth', JSON.stringify(authData));
+  axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  setToken(token);
+  setUser(userData.user || userData); // Handle both response structures
+  navigate('/admin/dashboard');
+};
+  // const login = async (token, userData) => {
+  //   const authData = {
+  //     token: token,
+  //     expiry: Date.now() + (7 * 24 * 60 * 60 * 1000) // 7 days
+  //   };
+  //   localStorage.setItem('auth', JSON.stringify(authData));
+  //   axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  //   setToken(token);
+  //   setUser(userData);
+  //   navigate('/admin/dashboard');
+  // };
 
   const logout = () => {
     localStorage.removeItem('auth');

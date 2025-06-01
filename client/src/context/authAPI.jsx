@@ -49,8 +49,58 @@ export const authAPI = {
     return data;
   },
   getMe: async () => {
-    const { data } = await api.get('/auth/me');
-    return data;
+    try {
+      const { data } = await api.get('/auth/me');
+      // Ensure consistent response structure
+      return {
+        success: true,
+        user: data.user || data.data?.user || data,
+        token: data.token
+      };
+    } catch (error) {
+      console.error('GetMe error:', error);
+      throw new Error(
+        error.response?.data?.message || 'Failed to fetch user profile'
+      );
+    }
+  },
+  // getMe: async () => {
+  //   const { data } = await api.get('/auth/me');
+  //   return data;
+  // },
+  updateProfile: async (url, userData) => {
+    try {
+      // Handle file upload if profileImage is a base64 string
+      if (userData.profileImage && userData.profileImage.startsWith('data:image')) {
+        const formData = new FormData();
+        Object.keys(userData).forEach(key => {
+          if (key === 'profileImage') {
+            // Convert base64 to Blob
+            const blob = dataURLtoBlob(userData.profileImage);
+            formData.append('profileImage', blob, 'profile.jpg');
+          } else if (typeof userData[key] === 'object') {
+            formData.append(key, JSON.stringify(userData[key]));
+          } else {
+            formData.append(key, userData[key]);
+          }
+        });
+
+        const response = await api.put(url, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+        return response.data;
+      }
+
+      // Regular JSON update
+      const response = await api.put(url, userData);
+      return response.data;
+    } catch (error) {
+      throw new Error(
+        error.response?.data?.message || 'Failed to update profile'
+      );
+    }
   },
   refreshToken: async () => {
     const { data } = await api.post('/auth/refresh');
@@ -60,5 +110,15 @@ export const authAPI = {
     await api.post('/auth/logout');
   }
 };
-
+function dataURLtoBlob(dataurl) {
+  const arr = dataurl.split(',');
+  const mime = arr[0].match(/:(.*?);/)[1];
+  const bstr = atob(arr[1]);
+  let n = bstr.length;
+  const u8arr = new Uint8Array(n);
+  while (n--) {
+    u8arr[n] = bstr.charCodeAt(n);
+  }
+  return new Blob([u8arr], { type: mime });
+}
 export default api;
