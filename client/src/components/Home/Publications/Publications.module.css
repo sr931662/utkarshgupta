@@ -203,6 +203,12 @@
   transition: color 0.3s ease;
   color: var(--color-text);
 }
+.publicationTitle:active {
+  color: var(--color-primary);
+}
+.publicationTitle:visited {
+  color: var(--color-primary);
+}
 
 .publicationAuthors {
   color: var(--color-text-secondary);
@@ -309,6 +315,7 @@
   transition: all 0.3s ease;
   will-change: transform;
 }
+
 
 .link i {
   transition: transform 0.3s ease;

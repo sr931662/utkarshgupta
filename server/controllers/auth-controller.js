@@ -2,6 +2,7 @@ const User = require('../db/userSchema');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const sendEmail = require('../utils/email');
+const sendOTPEmail = require('../utils/otpEmail');
 const { promisify } = require('util');
 const AppError = require('../utils/appError');
 const { filterObj } = require('../utils/helpers');
@@ -223,42 +224,50 @@ exports.restrictTo = (...roles) => {
   };
 };
 
+
 exports.forgotPassword = async (req, res, next) => {
   try {
     // 1) Get user based on POSTed email
     const user = await User.findOne({ email: req.body.email });
+    
+    // 2) Always return success to prevent email enumeration
     if (!user) {
-      return next(new AppError('There is no user with that email address.', 404));
+      return res.status(200).json({
+        status: 'success',
+        message: 'If the email exists, an OTP has been sent',
+      });
     }
 
-    // 2) Generate the random OTP
+    // 3) Generate the random OTP
     const otp = user.createOTP();
     await user.save({ validateBeforeSave: false });
 
-    // 3) Send it to user's email
-    const message = `Your password reset OTP is ${otp}. This OTP is valid for 10 minutes.`;
-
-    try {
-      await sendEmail({
-        email: user.email,
-        subject: 'Your password reset OTP (valid for 10 min)',
-        message,
-      });
-
-      res.status(200).json({
-        status: 'success',
-        message: 'OTP sent to email!',
-      });
-    } catch (err) {
-      user.passwordResetOTP = undefined;
-      user.otpExpires = undefined;
-      await user.save({ validateBeforeSave: false });
-
-      return next(
-        new AppError('There was an error sending the email. Try again later!'),
-        500
-      );
+    // 4) Send it to user's email (or log in development)
+    if (process.env.NODE_ENV === 'production') {
+      try {
+        await sendEmail({
+          email: user.email,
+          subject: 'Your password reset OTP (valid for 10 min)',
+          message: `Your OTP is ${otp}. This code expires in 10 minutes.`,
+        });
+      } catch (err) {
+        // Reset OTP if email fails
+        user.passwordResetOTP = undefined;
+        user.otpExpires = undefined;
+        await user.save({ validateBeforeSave: false });
+        
+        return next(new AppError('Failed to send OTP email. Please try again.', 500));
+      }
+    } else {
+      // In development, log the OTP instead of sending
+      console.log(`DEV OTP for ${user.email}: ${otp}`);
     }
+
+    res.status(200).json({
+      status: 'success',
+      message: 'If the email exists, an OTP has been sent',
+      ...(process.env.NODE_ENV !== 'production' && { debugOtp: otp }), // Include OTP in response for development
+    });
   } catch (err) {
     next(err);
   }
@@ -269,7 +278,7 @@ exports.resetPassword = async (req, res, next) => {
     // 1) Get user based on the email
     const user = await User.findOne({ email: req.body.email });
     if (!user) {
-      return next(new AppError('User not found', 404));
+      return next(new AppError('Password reset failed. Please try the OTP process again.', 400));
     }
 
     // 2) Verify OTP
@@ -289,6 +298,77 @@ exports.resetPassword = async (req, res, next) => {
     next(err);
   }
 };
+// exports.forgotPassword = async (req, res, next) => {
+//   try {
+//     // 1) Get user based on POSTed email
+//     const user = await User.findOne({ email: req.body.email });
+    
+//     // 2) If user doesn't exist, still return success to prevent email enumeration
+//     if (!user) {
+//       return res.status(200).json({
+//         status: 'success',
+//         message: 'If the email exists, an OTP has been sent',
+//       });
+//     }
+
+//     // 3) Generate the random OTP
+//     const otp = user.createOTP();
+//     await user.save({ validateBeforeSave: false });
+
+//     // 4) Send it to user's email
+//     const message = `Your password reset OTP is ${otp}. This OTP is valid for 10 minutes.`;
+
+//     try {
+//       await sendEmail({
+//         email: user.email,
+//         subject: 'Your password reset OTP (valid for 10 min)',
+//         message,
+//       });
+
+//       res.status(200).json({
+//         status: 'success',
+//         message: 'If the email exists, an OTP has been sent',
+//       });
+//     } catch (err) {
+//       user.passwordResetOTP = undefined;
+//       user.otpExpires = undefined;
+//       await user.save({ validateBeforeSave: false });
+
+//       return next(
+//         new AppError('There was an error sending the email. Try again later!'),
+//         500
+//       );
+//     }
+//   } catch (err) {
+//     next(err);
+//   }
+// };
+
+// exports.resetPassword = async (req, res, next) => {
+//   try {
+//     // 1) Get user based on the email
+//     const user = await User.findOne({ email: req.body.email });
+//     if (!user) {
+//       return next(new AppError('User not found', 404));
+//     }
+
+//     // 2) Verify OTP
+//     if (!user.verifyOTP(req.body.otp)) {
+//       return next(new AppError('Invalid or expired OTP', 400));
+//     }
+
+//     // 3) Update password
+//     user.password = req.body.newPassword;
+//     user.passwordResetOTP = undefined;
+//     user.otpExpires = undefined;
+//     await user.save();
+
+//     // 4) Log the user in, send JWT
+//     createSendToken(user, 200, res);
+//   } catch (err) {
+//     next(err);
+//   }
+// };
 
 exports.updatePassword = async (req, res, next) => {
   try {

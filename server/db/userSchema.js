@@ -219,5 +219,43 @@ userSchema.methods.createPasswordResetToken = function () {
   this.passwordResetExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
   return resetToken;
 };
+// ====== Enhanced OTP Methods ====== //
+userSchema.methods.createOTP = function() {
+  const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
+  
+  // Hash the OTP before storing (security improvement)
+  this.passwordResetOTP = crypto
+    .createHash('sha256')
+    .update(otp)
+    .digest('hex');
+    
+  this.otpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+  
+  return otp;
+};
+
+userSchema.methods.verifyOTP = function(candidateOTP) {
+  if (!this.passwordResetOTP || !this.otpExpires) return false;
+  
+  // Hash the candidate OTP for comparison
+  const hashedOTP = crypto
+    .createHash('sha256')
+    .update(candidateOTP)
+    .digest('hex');
+    
+  return this.passwordResetOTP === hashedOTP && Date.now() < this.otpExpires;
+};
+
+userSchema.methods.clearOTP = function() {
+  this.passwordResetOTP = undefined;
+  this.otpExpires = undefined;
+  return this;
+};
+
+// ====== Additional Security Method ====== //
+userSchema.methods.invalidateAllTokens = function() {
+  this.passwordChangedAt = Date.now() - 1000; // Makes all existing tokens invalid
+  return this;
+};
 
 module.exports = mongoose.model('User', userSchema);

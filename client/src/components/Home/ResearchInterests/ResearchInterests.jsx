@@ -37,7 +37,7 @@ const ResearchInterest = () => {
           >
             <div 
               className={styles.iconContainer}
-              style={{ backgroundColor: darkMode ? 'rgba(96, 165, 250, 0.1)' : 'rgba(47, 220, 232, 0.1)' }}
+              style={{ backgroundColor: darkMode ? 'hsla(213, 93.90%, 67.80%, 0.10)' : 'rgba(47, 220, 232, 0.1)' }}
             >
               <DiGoogleAnalytics 
                 className={styles.riIcon}

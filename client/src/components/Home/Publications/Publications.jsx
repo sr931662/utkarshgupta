@@ -255,7 +255,8 @@ const Publications = () => {
                     {publication.pdf && (
                       <a 
                         href={publication.pdf} 
-                        target="_blank" 
+                        target="_blank"
+                        
                         rel="noopener noreferrer" 
                         className={styles.link}
                       >
