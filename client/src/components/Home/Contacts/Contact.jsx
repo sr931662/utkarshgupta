@@ -320,144 +320,6 @@ const Contact = () => {
         {formStatus.submitting ? 'Sending...' : 'Send Message'}
       </button>
     </form>
-            {/* <form className={styles.form}>
-              <div className={styles.formGroup}>
-                <label 
-                  htmlFor="name" 
-                  className={styles.formLabel}
-                  style={{ color: darkMode ? '#e2e8f0' : '#374151' }}
-                >
-                  Name
-                </label>
-                <input 
-                  type="text" 
-                  id="name" 
-                  className={styles.formInput}
-                  placeholder="Your name"
-                  style={{
-                    backgroundColor: darkMode ? '#334155' : '#ffffff',
-                    borderColor: darkMode ? '#475569' : '#d1d5db',
-                    color: darkMode ? '#f8fafc' : '#1f2937'
-                  }}
-                />
-              </div>
-              
-              <div className={styles.formGroup}>
-                <label 
-                  htmlFor="email" 
-                  className={styles.formLabel}
-                  style={{ color: darkMode ? '#e2e8f0' : '#374151' }}
-                >
-                  Email
-                </label>
-                <input 
-                  type="email" 
-                  id="email" 
-                  className={styles.formInput}
-                  placeholder="Your email address"
-                  style={{
-                    backgroundColor: darkMode ? '#334155' : '#ffffff',
-                    borderColor: darkMode ? '#475569' : '#d1d5db',
-                    color: darkMode ? '#f8fafc' : '#1f2937'
-                  }}
-                />
-              </div>
-
-              <div className={styles.formGroup}>
-                <label 
-                  htmlFor="phone" 
-                  className={styles.formLabel}
-                  style={{ color: darkMode ? '#e2e8f0' : '#374151' }}
-                >
-                  Phone
-                </label>
-                <input 
-                  type="phone" 
-                  id="phone" 
-                  className={styles.formInput}
-                  placeholder="Your phone address"
-                  style={{
-                    backgroundColor: darkMode ? '#334155' : '#ffffff',
-                    borderColor: darkMode ? '#475569' : '#d1d5db',
-                    color: darkMode ? '#f8fafc' : '#1f2937'
-                  }}
-                />
-              </div>
-              
-              <div className={styles.formGroup}>
-                <label 
-                  htmlFor="organization" 
-                  className={styles.formLabel}
-                  style={{ color: darkMode ? '#e2e8f0' : '#374151' }}
-                >
-                  Organization Name
-                </label>
-                <input 
-                  type="name" 
-                  id="org" 
-                  className={styles.formInput}
-                  placeholder="Your organization name"
-                  style={{
-                    backgroundColor: darkMode ? '#334155' : '#ffffff',
-                    borderColor: darkMode ? '#475569' : '#d1d5db',
-                    color: darkMode ? '#f8fafc' : '#1f2937'
-                  }}
-                />
-              </div>
-
-              <div className={styles.formGroup}>
-                <label 
-                  htmlFor="subject" 
-                  className={styles.formLabel}
-                  style={{ color: darkMode ? '#e2e8f0' : '#374151' }}
-                >
-                  Subject
-                </label>
-                <input 
-                  type="text" 
-                  id="subject" 
-                  className={styles.formInput}
-                  placeholder="Message subject"
-                  style={{
-                    backgroundColor: darkMode ? '#334155' : '#ffffff',
-                    borderColor: darkMode ? '#475569' : '#d1d5db',
-                    color: darkMode ? '#f8fafc' : '#1f2937'
-                  }}
-                />
-              </div>
-              
-              <div className={styles.formGroup}>
-                <label 
-                  htmlFor="message" 
-                  className={styles.formLabel}
-                  style={{ color: darkMode ? '#e2e8f0' : '#374151' }}
-                >
-                  Message
-                </label>
-                <textarea 
-                  id="message" 
-                  rows="5" 
-                  className={styles.formTextarea}
-                  placeholder="Your message"
-                  style={{
-                    backgroundColor: darkMode ? '#334155' : '#ffffff',
-                    borderColor: darkMode ? '#475569' : '#d1d5db',
-                    color: darkMode ? '#f8fafc' : '#1f2937'
-                  }}
-                ></textarea>
-              </div>
-              
-              <button 
-                type="submit" 
-                className={styles.submitButton}
-                style={{
-                  backgroundColor: darkMode ? '#60a5fa' : '#2fdce8',
-                  color: darkMode ? '#0f172a' : '#ffffff'
-                }}
-              >
-                Send Message
-              </button>
-            </form> */}
           </div>
           
           {/* Contact Information */}
@@ -495,10 +357,10 @@ const Contact = () => {
                       className={styles.infoText}
                       style={{ color: darkMode ? '#94a3b8' : '#4b5563' }}
                     >
-                      {contactInfo?.affiliation?.department || 'Department of Neuroscience'}<br />
-                      {contactInfo?.affiliation?.institution || 'Stanford University'}<br />
-                      {contactInfo?.location?.address || '290 Jane Stanford Way'}<br />
-                      {contactInfo?.location?.city ? `${contactInfo.location.city}, ${contactInfo.location.state || ''} ${contactInfo.location.postalCode || ''}` : 'Stanford, CA 94305'}
+                      {contactInfo?.affiliation?.department || ''}<br />
+                      {contactInfo?.affiliation?.institution || ''}<br />
+                      {contactInfo?.location?.address || ''}<br />
+                      {contactInfo?.location?.city ? `${contactInfo.location.city}, ${contactInfo.location.state || ''} ${contactInfo.location.postalCode || ''}` : ''}
                     </p>
                   </div>
                 </div>
