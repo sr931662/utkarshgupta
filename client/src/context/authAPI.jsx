@@ -66,7 +66,7 @@ export const authAPI = {
   },
   // In your authAPI.js or equivalent
   sendContactEmail: async (formData) => {
-    const response = await fetch('http://localhost:5000/api/api/contact', {
+    const response = await fetch('https://utkarshgupta-1.onrender.com/api/contact', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
