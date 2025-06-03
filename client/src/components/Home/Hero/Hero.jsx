@@ -88,17 +88,11 @@ const Hero = () => {
         </div>
         <div className={styles.imageContainer}>
           <div className={styles.imageWrapper} ref={imageRef}>
-            {profileData.profileImage ? (
-              <img 
-                src={profile} 
-                alt={profileData.name || 'Profile'} 
-                className={styles.image}
-              />
-            ) : (
-              <div className={styles.placeholderImage}>
-                {profileData.name?.charAt(0)?.toUpperCase() || 'A'}
-              </div>
-            )}
+            <img 
+              src={profile} 
+              alt={profileData.name || 'Profile'} 
+              className={styles.image}
+            />
           </div>
         </div>
       </div>
