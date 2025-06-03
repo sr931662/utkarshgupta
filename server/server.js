@@ -23,7 +23,7 @@ app.use(express.urlencoded({ extended: true }));
 // CORS configuration
 app.use(
   cors({
-    origin: ['http://localhost:3000', 'https://utkarshgupta.vercel.app'],
+    origin: ['http://localhost:3000', 'https://utkarshgupta.vercel.app', 'https://utkarshgupta-sr931662s-projects.vercel.app'],
     methods: 'GET,POST,PUT,DELETE,PATCH,HEAD',
     credentials: true,
   })
@@ -40,6 +40,7 @@ app.get('/', (req, res) => {
 // API routes
 app.use('/api/auth', authRouter);
 app.use('/api/publications', pubRouter); // Add publications routes
+app.use('/api/contact', authRouter);
 // 404 Handler
 app.use('*', (req, res) => {
   res.status(404).json({

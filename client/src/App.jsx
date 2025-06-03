@@ -57,7 +57,7 @@ useEffect(() => {
           <Routes>
             {/* Public Routes */}
             <Route exact path='/' element={<HomePage />} />
-            <Route exact path='/publications-detail' element={<PublicationsDetail />} />
+            <Route exact path='/publications/:id' element={<PublicationsDetail />} />
             <Route exact path='/login' element={<Login />} />
             
             {/* Protected Routes */}

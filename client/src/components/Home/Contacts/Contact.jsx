@@ -1,430 +1,573 @@
-import React, { useRef, useEffect } from 'react';
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import React, { useEffect, useState } from 'react';
 import { useTheme } from '../../../context/ThemeContext';
 import styles from './Contact.module.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEnvelope, faMapLocation, faPhone, faTimeline } from '@fortawesome/free-solid-svg-icons'
 import { FaGithub, FaGoogle, FaLinkedinIn, FaResearchgate, FaTwitter } from "react-icons/fa";
-
-// Register ScrollTrigger plugin
-gsap.registerPlugin(ScrollTrigger);
+import { authAPI } from '../../../context/authAPI';
 
 const Contact = () => {
   const { darkMode } = useTheme();
-  const sectionRef = useRef();
-  const titleRef = useRef();
-  const subtitleRef = useRef();
-  const formRef = useRef();
-  const infoRef = useRef();
-  const mapRef = useRef();
-  const profileLinksRef = useRef([]);
+  const [contactInfo, setContactInfo] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    organization: '',
+    subject: '',
+    message: ''
+  });
+  const [formStatus, setFormStatus] = useState({
+    submitting: false,
+    submitted: false,
+    error: null
+  });
 
-  // Add profile link to ref array
-  const addToProfileLinksRef = (el) => {
-    if (el && !profileLinksRef.current.includes(el)) {
-      profileLinksRef.current.push(el);
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+  useEffect(() => {
+    const fetchContactInfo = async () => {
+      try {
+        const response = await authAPI.getPublicContactInfo();
+        setContactInfo(response.data);
+        setLoading(false);
+      } catch (err) {
+        setError(err.message || 'Failed to fetch contact information');
+        setLoading(false);
+      }
+    };
+
+    fetchContactInfo();
+  }, []);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setFormStatus({ submitting: true, submitted: false, error: null });
+
+    try {
+      const response = await authAPI.sendContactEmail(formData);
+      if (response.status === 200) {
+        setFormStatus({ submitting: false, submitted: true, error: null });
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          organization: '',
+          subject: '',
+          message: ''
+        });
+      } else {
+        throw new Error('Failed to send message');
+      }
+    } catch (err) {
+      setFormStatus({
+        submitting: false,
+        submitted: false,
+        error: err.message || 'Failed to send message. Please try again later.'
+      });
     }
   };
-
-  useEffect(() => {
-    // Animation timeline
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: sectionRef.current,
-        start: "top 75%",
-        toggleActions: "play none none none"
-      }
-    });
-
-    // Initial setup
-    gsap.set([titleRef.current, subtitleRef.current, formRef.current, infoRef.current, mapRef.current, ...profileLinksRef.current], {
-      opacity: 0,
-      y: 30
-    });
-
-    // Animation sequence
-    tl.fromTo(titleRef.current,
-      { opacity: 0, y: 30 },
-      { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" }
-    )
-    .fromTo(subtitleRef.current,
-      { opacity: 0, y: 30 },
-      { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" },
-      "-=0.4"
-    )
-    .fromTo(formRef.current,
-      { opacity: 0, y: 30 },
-      { opacity: 1, y: 0, duration: 0.6, ease: "back.out(1.2)" }
-    )
-    .fromTo(infoRef.current,
-      { opacity: 0, y: 30 },
-      { opacity: 1, y: 0, duration: 0.6, ease: "back.out(1.2)" },
-      "-=0.3"
-    )
-    .fromTo(profileLinksRef.current,
-      { opacity: 0, y: 20 },
-      { 
-        opacity: 1, 
-        y: 0, 
-        duration: 0.4, 
-        stagger: 0.05,
-        ease: "power2.out"
-      },
-      "-=0.4"
-    )
-    .fromTo(mapRef.current,
-      { opacity: 0, y: 30 },
-      { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" },
-      "-=0.3"
+  if (loading) {
+    return (
+      <section 
+        id="contact" 
+        className={styles.section}
+        style={{
+          backgroundColor: darkMode ? '#0f172a' : '#f9fafb',
+          '--color-decorative': darkMode ? 'rgba(96, 165, 250, 0.05)' : 'rgba(47, 220, 232, 0.05)'
+        }}
+      >
+        <div className={styles.container}>
+          <p style={{ color: darkMode ? '#f8fafc' : '#1f2937' }}>Loading contact information...</p>
+        </div>
+      </section>
     );
+  }
 
-    // Form input focus animations
-    const inputs = formRef.current?.querySelectorAll('input, textarea');
-    if (inputs) {
-      inputs.forEach(input => {
-        input.addEventListener('focus', () => {
-          gsap.to(input, {
-            boxShadow: darkMode ? '0 0 0 3px rgba(96, 165, 250, 0.3)' : '0 0 0 3px rgba(47, 220, 232, 0.3)',
-            duration: 0.3
-          });
-        });
-        
-        input.addEventListener('blur', () => {
-          gsap.to(input, {
-            boxShadow: 'none',
-            duration: 0.3
-          });
-        });
-      });
-    }
-
-    // Submit button hover animation
-    const submitButton = formRef.current?.querySelector('button');
-    if (submitButton) {
-      submitButton.addEventListener('mouseenter', () => {
-        gsap.to(submitButton, {
-          y: -2,
-          duration: 0.2
-        });
-      });
-      
-      submitButton.addEventListener('mouseleave', () => {
-        gsap.to(submitButton, {
-          y: 0,
-          duration: 0.2
-        });
-      });
-    }
-
-    // Profile links hover animations
-    profileLinksRef.current.forEach(link => {
-      const icon = link.querySelector('i');
-      
-      link.addEventListener('mouseenter', () => {
-        gsap.to(link, {
-          y: -3,
-          duration: 0.2
-        });
-        gsap.to(icon, {
-          scale: 1.2,
-          duration: 0.2
-        });
-      });
-      
-      link.addEventListener('mouseleave', () => {
-        gsap.to(link, {
-          y: 0,
-          duration: 0.2
-        });
-        gsap.to(icon, {
-          scale: 1,
-          duration: 0.2
-        });
-      });
-    });
-
-    // Map load animation
-    const map = mapRef.current?.querySelector('iframe');
-    if (map) {
-      map.addEventListener('load', () => {
-        gsap.fromTo(map,
-          { opacity: 0 },
-          { opacity: 1, duration: 0.8 }
-        );
-      });
-    }
-
-    return () => {
-      // Clean up ScrollTrigger instances
-      ScrollTrigger.getAll().forEach(instance => instance.kill());
-    };
-  }, [darkMode]);
-
-  // Dark mode transition animation
-  useEffect(() => {
-    // Section background transition
-    gsap.to(sectionRef.current, {
-      backgroundColor: darkMode ? '#0f172a' : '#f9fafb',
-      duration: 0.8,
-      ease: 'power2.inOut'
-    });
-
-    // Title and subtitle transitions
-    gsap.to(titleRef.current, {
-      color: darkMode ? '#f8fafc' : '#1f2937',
-      duration: 0.6
-    });
-
-    gsap.to(subtitleRef.current, {
-      color: darkMode ? '#94a3b8' : '#4b5563',
-      duration: 0.6
-    });
-
-    // Form container transition
-    const formContainer = formRef.current;
-    if (formContainer) {
-      gsap.to(formContainer, {
-        backgroundColor: darkMode ? '#1e293b' : '#ffffff',
-        boxShadow: darkMode ? '0 4px 6px -1px rgba(0, 0, 0, 0.3)' : '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-        duration: 0.6
-      });
-
-      // Form elements
-      const formTitle = formContainer.querySelector('h3');
-      const formLabels = formContainer.querySelectorAll('label');
-      const formInputs = formContainer.querySelectorAll('input, textarea');
-      
-      if (formTitle) gsap.to(formTitle, { color: darkMode ? '#f8fafc' : '#1f2937', duration: 0.6 });
-      
-      formLabels.forEach(label => {
-        gsap.to(label, {
-          color: darkMode ? '#e2e8f0' : '#374151',
-          duration: 0.6
-        });
-      });
-      
-      formInputs.forEach(input => {
-        gsap.to(input, {
-          backgroundColor: darkMode ? '#334155' : '#ffffff',
-          borderColor: darkMode ? '#475569' : '#d1d5db',
-          color: darkMode ? '#f8fafc' : '#1f2937',
-          duration: 0.6
-        });
-      });
-      
-      // Submit button
-      const submitButton = formContainer.querySelector('button');
-      if (submitButton) {
-        gsap.to(submitButton, {
-          backgroundColor: darkMode ? '#60a5fa' : '#2fdce8',
-          color: darkMode ? '#0f172a' : '#ffffff',
-          duration: 0.6
-        });
-      }
-    }
-
-    // Info container transition
-    const infoContainer = infoRef.current?.querySelector(`.${styles.infoContainer}`);
-    if (infoContainer) {
-      gsap.to(infoContainer, {
-        backgroundColor: darkMode ? '#1e293b' : '#ffffff',
-        boxShadow: darkMode ? '0 4px 6px -1px rgba(0, 0, 0, 0.3)' : '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-        duration: 0.6
-      });
-
-      // Info elements
-      const infoTitle = infoContainer.querySelector('h3');
-      const infoItems = infoContainer.querySelectorAll(`.${styles.infoItem}`);
-      
-      if (infoTitle) gsap.to(infoTitle, { color: darkMode ? '#f8fafc' : '#1f2937', duration: 0.6 });
-      
-      infoItems.forEach(item => {
-        const heading = item.querySelector('h4');
-        const text = item.querySelector('p');
-        const iconContainer = item.querySelector(`.${styles.infoIcon}`);
-        
-        if (heading) gsap.to(heading, { color: darkMode ? '#e2e8f0' : '#1f2937', duration: 0.6 });
-        if (text) gsap.to(text, { color: darkMode ? '#94a3b8' : '#4b5563', duration: 0.6 });
-        if (iconContainer) {
-          gsap.to(iconContainer, {
-            backgroundColor: darkMode ? 'rgba(96, 165, 250, 0.1)' : 'rgba(47, 220, 232, 0.1)',
-            duration: 0.6
-          });
-        }
-      });
-    }
-
-    // Profiles container transition
-    const profilesContainer = infoRef.current?.querySelector(`.${styles.profilesContainer}`);
-    if (profilesContainer) {
-      gsap.to(profilesContainer, {
-        backgroundColor: darkMode ? '#1e293b' : '#ffffff',
-        boxShadow: darkMode ? '0 4px 6px -1px rgba(0, 0, 0, 0.3)' : '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-        duration: 0.6
-      });
-
-      // Profiles elements
-      const profilesTitle = profilesContainer.querySelector('h3');
-      if (profilesTitle) gsap.to(profilesTitle, { color: darkMode ? '#f8fafc' : '#1f2937', duration: 0.6 });
-      
-      const profileLinks = profilesContainer.querySelectorAll('a');
-      profileLinks.forEach(link => {
-        gsap.to(link, {
-          backgroundColor: darkMode ? '#334155' : '#f3f4f6',
-          color: darkMode ? '#e2e8f0' : '#1f2937',
-          duration: 0.6
-        });
-      });
-    }
-
-    // Map container transition
-    if (mapRef.current) {
-      gsap.to(mapRef.current, {
-        backgroundColor: darkMode ? '#1e293b' : '#ffffff',
-        boxShadow: darkMode ? '0 4px 6px -1px rgba(0, 0, 0, 0.3)' : '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-        duration: 0.6
-      });
-    }
-
-    // Decorative elements transition
-    if (sectionRef.current) {
-      gsap.to(sectionRef.current, {
-        '--color-decorative': darkMode ? 'rgba(96, 165, 250, 0.05)' : 'rgba(47, 220, 232, 0.05)',
-        duration: 0.8
-      });
-    }
-  }, [darkMode]);
+  if (error) {
+    return (
+      <section 
+        id="contact" 
+        className={styles.section}
+        style={{
+          backgroundColor: darkMode ? '#0f172a' : '#f9fafb',
+          '--color-decorative': darkMode ? 'rgba(96, 165, 250, 0.05)' : 'rgba(47, 220, 232, 0.05)'
+        }}
+      >
+        <div className={styles.container}>
+          <p style={{ color: darkMode ? '#f8fafc' : '#1f2937' }}>{error}</p>
+        </div>
+      </section>
+    );
+  }
 
   return (
-    <section id="contact" className={styles.section} ref={sectionRef}>
+    <section 
+      id="contact" 
+      className={styles.section}
+      style={{
+        backgroundColor: darkMode ? '#0f172a' : '#f9fafb',
+        '--color-decorative': darkMode ? 'rgba(96, 165, 250, 0.05)' : 'rgba(47, 220, 232, 0.05)'
+      }}
+    >
       <div className={styles.container}>
-        <h2 className={styles.sectionTitle} ref={titleRef}>Get in Touch</h2>
-        <p className={styles.sectionSubtitle} ref={subtitleRef}>
+        <h2 
+          className={styles.sectionTitle}
+          style={{ color: darkMode ? '#f8fafc' : '#1f2937' }}
+        >
+          Get in Touch
+        </h2>
+        <p 
+          className={styles.sectionSubtitle}
+          style={{ color: darkMode ? '#94a3b8' : '#4b5563' }}
+        >
           Feel free to reach out for research collaborations, speaking engagements, or academic inquiries.
         </p>
         
         <div className={styles.grid}>
           {/* Contact Form */}
-          <div className={styles.formContainer} ref={formRef}>
-            <h3 className={styles.formTitle}>Send a Message</h3>
+          <div 
+            className={styles.formContainer}
+            style={{
+              backgroundColor: darkMode ? '#1e293b' : '#ffffff',
+              boxShadow: darkMode ? '0 4px 6px -1px rgba(0, 0, 0, 0.3)' : '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+            }}
+          >
+            <h3 
+              className={styles.formTitle}
+              style={{ color: darkMode ? '#f8fafc' : '#1f2937' }}
+            >
+              Send a Message
+            </h3>
             
-            <form className={styles.form}>
+            <form className={styles.form} onSubmit={handleSubmit}>
+      <div className={styles.formGroup}>
+        <label 
+          htmlFor="name" 
+          className={styles.formLabel}
+          style={{ color: darkMode ? '#e2e8f0' : '#374151' }}
+        >
+          Name
+        </label>
+        <input 
+          type="text" 
+          id="name" 
+          name="name"
+          className={styles.formInput}
+          placeholder="Your name"
+          value={formData.name}
+          onChange={handleInputChange}
+          required
+          style={{
+            backgroundColor: darkMode ? '#334155' : '#ffffff',
+            borderColor: darkMode ? '#475569' : '#d1d5db',
+            color: darkMode ? '#f8fafc' : '#1f2937'
+          }}
+        />
+      </div>
+      
+      <div className={styles.formGroup}>
+        <label 
+          htmlFor="email" 
+          className={styles.formLabel}
+          style={{ color: darkMode ? '#e2e8f0' : '#374151' }}
+        >
+          Email
+        </label>
+        <input 
+          type="email" 
+          id="email" 
+          name="email"
+          className={styles.formInput}
+          placeholder="Your email address"
+          value={formData.email}
+          onChange={handleInputChange}
+          required
+          style={{
+            backgroundColor: darkMode ? '#334155' : '#ffffff',
+            borderColor: darkMode ? '#475569' : '#d1d5db',
+            color: darkMode ? '#f8fafc' : '#1f2937'
+          }}
+        />
+      </div>
+
+      <div className={styles.formGroup}>
+        <label 
+          htmlFor="phone" 
+          className={styles.formLabel}
+          style={{ color: darkMode ? '#e2e8f0' : '#374151' }}
+        >
+          Phone
+        </label>
+        <input 
+          type="tel" 
+          id="phone" 
+          name="phone"
+          className={styles.formInput}
+          placeholder="Your phone number"
+          value={formData.phone}
+          onChange={handleInputChange}
+          style={{
+            backgroundColor: darkMode ? '#334155' : '#ffffff',
+            borderColor: darkMode ? '#475569' : '#d1d5db',
+            color: darkMode ? '#f8fafc' : '#1f2937'
+          }}
+        />
+      </div>
+      
+      <div className={styles.formGroup}>
+        <label 
+          htmlFor="organization" 
+          className={styles.formLabel}
+          style={{ color: darkMode ? '#e2e8f0' : '#374151' }}
+        >
+          Organization Name
+        </label>
+        <input 
+          type="text" 
+          id="organization" 
+          name="organization"
+          className={styles.formInput}
+          placeholder="Your organization name"
+          value={formData.organization}
+          onChange={handleInputChange}
+          style={{
+            backgroundColor: darkMode ? '#334155' : '#ffffff',
+            borderColor: darkMode ? '#475569' : '#d1d5db',
+            color: darkMode ? '#f8fafc' : '#1f2937'
+          }}
+        />
+      </div>
+
+      <div className={styles.formGroup}>
+        <label 
+          htmlFor="subject" 
+          className={styles.formLabel}
+          style={{ color: darkMode ? '#e2e8f0' : '#374151' }}
+        >
+          Subject
+        </label>
+        <input 
+          type="text" 
+          id="subject" 
+          name="subject"
+          className={styles.formInput}
+          placeholder="Message subject"
+          value={formData.subject}
+          onChange={handleInputChange}
+          required
+          style={{
+            backgroundColor: darkMode ? '#334155' : '#ffffff',
+            borderColor: darkMode ? '#475569' : '#d1d5db',
+            color: darkMode ? '#f8fafc' : '#1f2937'
+          }}
+        />
+      </div>
+      
+      <div className={styles.formGroup}>
+        <label 
+          htmlFor="message" 
+          className={styles.formLabel}
+          style={{ color: darkMode ? '#e2e8f0' : '#374151' }}
+        >
+          Message
+        </label>
+        <textarea 
+          id="message" 
+          name="message"
+          rows="5" 
+          className={styles.formTextarea}
+          placeholder="Your message"
+          value={formData.message}
+          onChange={handleInputChange}
+          required
+          style={{
+            backgroundColor: darkMode ? '#334155' : '#ffffff',
+            borderColor: darkMode ? '#475569' : '#d1d5db',
+            color: darkMode ? '#f8fafc' : '#1f2937'
+          }}
+        ></textarea>
+      </div>
+      
+      {formStatus.error && (
+        <p className={styles.errorMessage} style={{ color: '#ef4444' }}>
+          {formStatus.error}
+        </p>
+      )}
+      
+      {formStatus.submitted && (
+        <p className={styles.successMessage} style={{ color: darkMode ? '#4ade80' : '#16a34a' }}>
+          Thank you! Your message has been sent successfully.
+        </p>
+      )}
+      
+      <button 
+        type="submit" 
+        className={styles.submitButton}
+        disabled={formStatus.submitting}
+        style={{
+          backgroundColor: darkMode ? '#60a5fa' : '#2fdce8',
+          color: darkMode ? '#0f172a' : '#ffffff',
+          opacity: formStatus.submitting ? 0.7 : 1
+        }}
+      >
+        {formStatus.submitting ? 'Sending...' : 'Send Message'}
+      </button>
+    </form>
+            {/* <form className={styles.form}>
               <div className={styles.formGroup}>
-                <label htmlFor="name" className={styles.formLabel}>Name</label>
+                <label 
+                  htmlFor="name" 
+                  className={styles.formLabel}
+                  style={{ color: darkMode ? '#e2e8f0' : '#374151' }}
+                >
+                  Name
+                </label>
                 <input 
                   type="text" 
                   id="name" 
                   className={styles.formInput}
                   placeholder="Your name"
+                  style={{
+                    backgroundColor: darkMode ? '#334155' : '#ffffff',
+                    borderColor: darkMode ? '#475569' : '#d1d5db',
+                    color: darkMode ? '#f8fafc' : '#1f2937'
+                  }}
                 />
               </div>
               
               <div className={styles.formGroup}>
-                <label htmlFor="email" className={styles.formLabel}>Email</label>
+                <label 
+                  htmlFor="email" 
+                  className={styles.formLabel}
+                  style={{ color: darkMode ? '#e2e8f0' : '#374151' }}
+                >
+                  Email
+                </label>
                 <input 
                   type="email" 
                   id="email" 
                   className={styles.formInput}
                   placeholder="Your email address"
+                  style={{
+                    backgroundColor: darkMode ? '#334155' : '#ffffff',
+                    borderColor: darkMode ? '#475569' : '#d1d5db',
+                    color: darkMode ? '#f8fafc' : '#1f2937'
+                  }}
                 />
               </div>
 
               <div className={styles.formGroup}>
-                <label htmlFor="phone" className={styles.formLabel}>Phone</label>
+                <label 
+                  htmlFor="phone" 
+                  className={styles.formLabel}
+                  style={{ color: darkMode ? '#e2e8f0' : '#374151' }}
+                >
+                  Phone
+                </label>
                 <input 
                   type="phone" 
                   id="phone" 
                   className={styles.formInput}
                   placeholder="Your phone address"
+                  style={{
+                    backgroundColor: darkMode ? '#334155' : '#ffffff',
+                    borderColor: darkMode ? '#475569' : '#d1d5db',
+                    color: darkMode ? '#f8fafc' : '#1f2937'
+                  }}
                 />
               </div>
               
               <div className={styles.formGroup}>
-                <label htmlFor="organization" className={styles.formLabel}>Organization Name</label>
+                <label 
+                  htmlFor="organization" 
+                  className={styles.formLabel}
+                  style={{ color: darkMode ? '#e2e8f0' : '#374151' }}
+                >
+                  Organization Name
+                </label>
                 <input 
                   type="name" 
                   id="org" 
                   className={styles.formInput}
                   placeholder="Your organization name"
+                  style={{
+                    backgroundColor: darkMode ? '#334155' : '#ffffff',
+                    borderColor: darkMode ? '#475569' : '#d1d5db',
+                    color: darkMode ? '#f8fafc' : '#1f2937'
+                  }}
                 />
               </div>
 
               <div className={styles.formGroup}>
-                <label htmlFor="subject" className={styles.formLabel}>Subject</label>
+                <label 
+                  htmlFor="subject" 
+                  className={styles.formLabel}
+                  style={{ color: darkMode ? '#e2e8f0' : '#374151' }}
+                >
+                  Subject
+                </label>
                 <input 
                   type="text" 
                   id="subject" 
                   className={styles.formInput}
                   placeholder="Message subject"
+                  style={{
+                    backgroundColor: darkMode ? '#334155' : '#ffffff',
+                    borderColor: darkMode ? '#475569' : '#d1d5db',
+                    color: darkMode ? '#f8fafc' : '#1f2937'
+                  }}
                 />
               </div>
               
               <div className={styles.formGroup}>
-                <label htmlFor="message" className={styles.formLabel}>Message</label>
+                <label 
+                  htmlFor="message" 
+                  className={styles.formLabel}
+                  style={{ color: darkMode ? '#e2e8f0' : '#374151' }}
+                >
+                  Message
+                </label>
                 <textarea 
                   id="message" 
                   rows="5" 
                   className={styles.formTextarea}
                   placeholder="Your message"
+                  style={{
+                    backgroundColor: darkMode ? '#334155' : '#ffffff',
+                    borderColor: darkMode ? '#475569' : '#d1d5db',
+                    color: darkMode ? '#f8fafc' : '#1f2937'
+                  }}
                 ></textarea>
               </div>
               
-              <button type="submit" className={styles.submitButton}>
+              <button 
+                type="submit" 
+                className={styles.submitButton}
+                style={{
+                  backgroundColor: darkMode ? '#60a5fa' : '#2fdce8',
+                  color: darkMode ? '#0f172a' : '#ffffff'
+                }}
+              >
                 Send Message
               </button>
-            </form>
+            </form> */}
           </div>
           
           {/* Contact Information */}
-          <div ref={infoRef}>
-            <div className={styles.infoContainer}>
-              <h3 className={styles.infoTitle}>Contact Information</h3>
+          <div>
+            <div 
+              className={styles.infoContainer}
+              style={{
+                backgroundColor: darkMode ? '#1e293b' : '#ffffff',
+                boxShadow: darkMode ? '0 4px 6px -1px rgba(0, 0, 0, 0.3)' : '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+              }}
+            >
+              <h3 
+                className={styles.infoTitle}
+                style={{ color: darkMode ? '#f8fafc' : '#1f2937' }}
+              >
+                Contact Information
+              </h3>
               
               <div className={styles.infoList}>
                 <div className={styles.infoItem}>
-                  <div className={styles.infoIcon}>
+                  <div 
+                    className={styles.infoIcon}
+                    style={{ backgroundColor: darkMode ? 'rgba(96, 165, 250, 0.1)' : 'rgba(47, 220, 232, 0.1)' }}
+                  >
                     <FontAwesomeIcon icon={faMapLocation} className={styles.fIcon} />
                   </div>
                   <div>
-                    <h4 className={styles.infoHeading}>Office Address</h4>
-                    <p className={styles.infoText}>
-                      Department of Neuroscience<br />
-                      Stanford University<br />
-                      290 Jane Stanford Way<br />
-                      Stanford, CA 94305
+                    <h4 
+                      className={styles.infoHeading}
+                      style={{ color: darkMode ? '#e2e8f0' : '#1f2937' }}
+                    >
+                      Office Address
+                    </h4>
+                    <p 
+                      className={styles.infoText}
+                      style={{ color: darkMode ? '#94a3b8' : '#4b5563' }}
+                    >
+                      {contactInfo?.affiliation?.department || 'Department of Neuroscience'}<br />
+                      {contactInfo?.affiliation?.institution || 'Stanford University'}<br />
+                      {contactInfo?.location?.address || '290 Jane Stanford Way'}<br />
+                      {contactInfo?.location?.city ? `${contactInfo.location.city}, ${contactInfo.location.state || ''} ${contactInfo.location.postalCode || ''}` : 'Stanford, CA 94305'}
                     </p>
                   </div>
                 </div>
                 
                 <div className={styles.infoItem}>
-                  <div className={styles.infoIcon}>
+                  <div 
+                    className={styles.infoIcon}
+                    style={{ backgroundColor: darkMode ? 'rgba(96, 165, 250, 0.1)' : 'rgba(47, 220, 232, 0.1)' }}
+                  >
                     <FontAwesomeIcon icon={faEnvelope} className={styles.fIcon} />
                   </div>
                   <div>
-                    <h4 className={styles.infoHeading}>Email</h4>
-                    <p className={styles.infoText}>utkarsh.gupta@uconn.edu</p>
+                    <h4 
+                      className={styles.infoHeading}
+                      style={{ color: darkMode ? '#e2e8f0' : '#1f2937' }}
+                    >
+                      Email
+                    </h4>
+                    <p 
+                      className={styles.infoText}
+                      style={{ color: darkMode ? '#94a3b8' : '#4b5563' }}
+                    >
+                      {contactInfo?.email || 'utkarsh.gupta@uconn.edu'}
+                    </p>
                   </div>
                 </div>
                 
                 <div className={styles.infoItem}>
-                  <div className={styles.infoIcon}>
+                  <div 
+                    className={styles.infoIcon}
+                    style={{ backgroundColor: darkMode ? 'rgba(96, 165, 250, 0.1)' : 'rgba(47, 220, 232, 0.1)' }}
+                  >
                     <FontAwesomeIcon icon={faPhone} className={styles.fIcon} />
                   </div>
                   <div>
-                    <h4 className={styles.infoHeading}>Phone</h4>
-                    <p className={styles.infoText}>+1 (860) 818-6602</p>
+                    <h4 
+                      className={styles.infoHeading}
+                      style={{ color: darkMode ? '#e2e8f0' : '#1f2937' }}
+                    >
+                      Phone
+                    </h4>
+                    <p 
+                      className={styles.infoText}
+                      style={{ color: darkMode ? '#94a3b8' : '#4b5563' }}
+                    >
+                      {contactInfo?.phoneNumber || '+1 (860) 818-6602'}
+                    </p>
                   </div>
                 </div>
                 
                 <div className={styles.infoItem}>
-                  <div className={styles.infoIcon}>
+                  <div 
+                    className={styles.infoIcon}
+                    style={{ backgroundColor: darkMode ? 'rgba(96, 165, 250, 0.1)' : 'rgba(47, 220, 232, 0.1)' }}
+                  >
                     <FontAwesomeIcon icon={faTimeline} className={styles.fIcon} />
                   </div>
                   <div>
-                    <h4 className={styles.infoHeading}>Office Hours</h4>
-                    <p className={styles.infoText}>
-                      Monday - Friday: 9:00 AM - 5:00 PM<br />
+                    <h4 
+                      className={styles.infoHeading}
+                      style={{ color: darkMode ? '#e2e8f0' : '#1f2937' }}
+                    >
+                      Office Hours
+                    </h4>
+                    <p 
+                      className={styles.infoText}
+                      style={{ color: darkMode ? '#94a3b8' : '#4b5563' }}
+                    >
+                      {contactInfo?.affiliation?.officeHours || 'Monday - Friday: 9:00 AM - 5:00 PM'}<br />
                       By appointment only
                     </p>
                   </div>
@@ -433,32 +576,94 @@ const Contact = () => {
             </div>
             
             {/* Academic Profiles */}
-            <div className={styles.profilesContainer}>
-              <h3 className={styles.profilesTitle}>Academic Profiles</h3>
+            <div 
+              className={styles.profilesContainer}
+              style={{
+                backgroundColor: darkMode ? '#1e293b' : '#ffffff',
+                boxShadow: darkMode ? '0 4px 6px -1px rgba(0, 0, 0, 0.3)' : '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+              }}
+            >
+              <h3 
+                className={styles.profilesTitle}
+                style={{ color: darkMode ? '#f8fafc' : '#1f2937' }}
+              >
+                Academic Profiles
+              </h3>
               
               <div className={styles.profilesList}>
-                {/* <a href="#" className={styles.profileLink} ref={addToProfileLinksRef}>
-                  <span><FaGoogle /> Google Scholar</span>
-                </a> */}
-                
-                <a href="https://www.linkedin.com/in/utkarshgupta8/" className={styles.profileLink} ref={addToProfileLinksRef}>
-                  <span><FaLinkedinIn /> LinkedIn</span>
-                </a>
-                
-                {/* <a href="#" className={styles.profileLink} ref={addToProfileLinksRef}>
-                  <span><FaTwitter /> Twitter</span>
-                </a>
-                
-                <a href="#" className={styles.profileLink} ref={addToProfileLinksRef}>
-                  <span><FaResearchgate /> ResearchGate</span>
-                </a> */}
+                {contactInfo?.socialMedia?.linkedin && (
+                  <a 
+                    href={contactInfo.socialMedia.linkedin} 
+                    className={styles.profileLink}
+                    style={{
+                      backgroundColor: darkMode ? '#334155' : '#f3f4f6',
+                      color: darkMode ? '#e2e8f0' : '#1f2937'
+                    }}
+                  >
+                    <span><FaLinkedinIn /> LinkedIn</span>
+                  </a>
+                )}
+                {contactInfo?.socialMedia?.twitter && (
+                  <a 
+                    href={contactInfo.socialMedia.twitter} 
+                    className={styles.profileLink}
+                    style={{
+                      backgroundColor: darkMode ? '#334155' : '#f3f4f6',
+                      color: darkMode ? '#e2e8f0' : '#1f2937'
+                    }}
+                  >
+                    <span><FaTwitter /> Twitter</span>
+                  </a>
+                )}
+                {contactInfo?.socialMedia?.github && (
+                  <a 
+                    href={contactInfo.socialMedia.github} 
+                    className={styles.profileLink}
+                    style={{
+                      backgroundColor: darkMode ? '#334155' : '#f3f4f6',
+                      color: darkMode ? '#e2e8f0' : '#1f2937'
+                    }}
+                  >
+                    <span><FaGithub /> GitHub</span>
+                  </a>
+                )}
+                {contactInfo?.socialMedia?.researchGate && (
+                  <a 
+                    href={contactInfo.socialMedia.researchGate} 
+                    className={styles.profileLink}
+                    style={{
+                      backgroundColor: darkMode ? '#334155' : '#f3f4f6',
+                      color: darkMode ? '#e2e8f0' : '#1f2937'
+                    }}
+                  >
+                    <span><FaResearchgate /> ResearchGate</span>
+                  </a>
+                )}
+                {contactInfo?.socialMedia?.googleScholar && (
+                  <a 
+                    href={contactInfo.socialMedia.googleScholar} 
+                    className={styles.profileLink}
+                    style={{
+                      backgroundColor: darkMode ? '#334155' : '#f3f4f6',
+                      color: darkMode ? '#e2e8f0' : '#1f2937'
+                    }}
+                  >
+                    <span><FaGoogle /> Google Scholar</span>
+                  </a>
+                )}
               </div>
             </div>
           </div>
         </div>
         
         {/* Map */}
-        <div className={styles.mapContainer} ref={mapRef}>
+        <div 
+          className={styles.mapContainer}
+          style={{
+            backgroundColor: darkMode ? '#1e293b' : '#ffffff',
+            boxShadow: darkMode ? '0 4px 6px -1px rgba(0, 0, 0, 0.3)' : '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+          }}
+        >
           <iframe 
             src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d120254.58161449396!2d-74.06157091765019!3d40.68999594905293!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c24fa5d33f083b%3A0xc80b8f06e177fe62!2sNew%20York%2C%20NY%2C%20USA!5e1!3m2!1sen!2sin!4v1746984266291!5m2!1sen!2sin" 
             allowFullScreen 

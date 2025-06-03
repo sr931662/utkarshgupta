@@ -22,7 +22,17 @@
   margin-bottom: 1rem;
   position: relative;
 }
+.errorMessage {
+  margin-bottom: 1rem;
+  color: #ef4444;
+  font-size: 0.875rem;
+}
 
+.successMessage {
+  margin-bottom: 1rem;
+  color: #16a34a;
+  font-size: 0.875rem;
+}
 .sectionTitle::after {
   content: '';
   position: absolute;

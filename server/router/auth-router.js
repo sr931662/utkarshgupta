@@ -7,10 +7,15 @@ const authMiddleware = require('../middlewares/auth-mid');
 router.post('/login', authController.login);
 router.post('/send-otp', authController.forgotPassword);
 router.post('/verify-otp-reset', authController.resetPassword);
-
+// Add this near the top of auth-router.js (before protected routes)
+router.get('/public/contact', authController.getPublicContactInfo);
+// Add this near the top of auth-router.js (before protected routes)
+router.get('/public/superadmin', authController.getPublicSuperadmin);
 // Protected routes (require authentication)
+
 router.use(authController.protect);
 
+router.post('/', authController.sendContactEmail);
 router.get('/me', authController.getMe);
 router.patch('/update-me', authController.updateMe);
 router.patch('/update-password', authController.updatePassword);

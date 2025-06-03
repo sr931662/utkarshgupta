@@ -4,6 +4,8 @@ const crypto = require('crypto');
 const sendEmail = require('../utils/email');
 const { promisify } = require('util');
 const AppError = require('../utils/appError');
+const { filterObj } = require('../utils/helpers');
+const nodemailer = require('nodemailer');
 
 const signToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -65,6 +67,99 @@ exports.login = async (req, res, next) => {
   }
 };
 
+exports.sendContactEmail = async (req, res, next) => {
+  try {
+    const { name, email, phone, organization, subject, message } = req.body;
+
+    // 1) Create a transporter
+    const transporter = nodemailer.createTransport({
+      host: process.env.EMAIL_HOST,
+      port: process.env.EMAIL_PORT,
+      secure: process.env.EMAIL_SECURE === 'true', // true for 465, false for other ports
+      auth: {
+        user: process.env.EMAIL_USERNAME,
+        pass: process.env.EMAIL_PASSWORD,
+      },
+    });
+
+    // 2) Define email options
+    const mailOptions = {
+      from: `"Contact Form" <${process.env.EMAIL_FROM}>`,
+      to: process.env.CONTACT_FORM_RECIPIENT, // Your email where you want to receive messages
+      subject: `New Contact Form Submission: ${subject}`,
+      text: `
+        Name: ${name}
+        Email: ${email}
+        Phone: ${phone || 'Not provided'}
+        Organization: ${organization || 'Not provided'}
+        
+        Message:
+        ${message}
+      `,
+      html: `
+        <h2>New Contact Form Submission</h2>
+        <p><strong>Subject:</strong> ${subject}</p>
+        <p><strong>From:</strong> ${name} (${email})</p>
+        <p><strong>Phone:</strong> ${phone || 'Not provided'}</p>
+        <p><strong>Organization:</strong> ${organization || 'Not provided'}</p>
+        <h3>Message:</h3>
+        <p>${message.replace(/\n/g, '<br>')}</p>
+      `,
+    };
+
+    // 3) Send email
+    await transporter.sendMail(mailOptions);
+
+    // 4) Send response
+    res.status(200).json({
+      status: 'success',
+      message: 'Message sent successfully',
+    });
+  } catch (err) {
+    return next(new AppError('There was an error sending the message. Please try again later.', 500));
+  }
+};
+
+exports.getPublicContactInfo = async (req, res, next) => {
+  try {
+    const superadmin = await User.findOne({ role: 'superadmin', isApproved: true })
+      .select('name email phoneNumber alternateEmail affiliation.location affiliation.officeHours socialMedia');
+    
+    if (!superadmin) {
+      return next(new AppError('No public contact information available', 404));
+    }
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        user: superadmin
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+// Then add this controller method to auth-controller.js:
+exports.getPublicSuperadmin = async (req, res, next) => {
+  try {
+    const superadmin = await User.findOne({ role: 'superadmin', isApproved: true })
+      .select('-password -passwordResetToken -passwordResetExpires -passwordChangedAt -passwordResetOTP -otpExpires');
+    
+    if (!superadmin) {
+      return next(new AppError('No superadmin profile found', 404));
+    }
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        user: superadmin
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 exports.protect = async (req, res, next) => {
   try {
     // 1) Getting token and check if it's there
@@ -102,6 +197,12 @@ exports.protect = async (req, res, next) => {
       );
     }
 
+    // 5) Check if account is approved
+    if (!currentUser.isApproved) {
+      return next(
+        new AppError('Your account is not yet approved. Please contact administrator.', 403)
+      );
+    }
     // GRANT ACCESS TO PROTECTED ROUTE
     req.user = currentUser;
     res.locals.user = currentUser;
@@ -224,32 +325,125 @@ exports.getMe = async (req, res, next) => {
   }
 };
 
+
+
 exports.updateMe = async (req, res, next) => {
   try {
-    // Filter out unwanted fields that are not allowed to be updated
-    const filteredBody = { ...req.body };
-    
-    // Handle file upload for profile image if needed
+    // 1) Create error if user POSTs password data
+    if (req.body.password || req.body.passwordConfirm) {
+      return next(
+        new AppError(
+          'This route is not for password updates. Please use /update-password.',
+          400
+        )
+      );
+    }
+
+    // 2) Manually filter out unwanted fields
+    const filteredBody = {
+      name: req.body.name,
+      email: req.body.email,
+      professionalTitle: req.body.professionalTitle,
+      gender: req.body.gender,
+      dateOfBirth: req.body.dateOfBirth,
+      phoneNumber: req.body.phoneNumber,
+      alternateEmail: req.body.alternateEmail,
+      bio: req.body.bio,
+      socialMedia: req.body.socialMedia,
+      affiliation: req.body.affiliation,
+      location: req.body.location,
+      education: req.body.education,
+      workExperience: req.body.workExperience,
+      awards: req.body.awards,
+      researchInterests: req.body.researchInterests,
+      teachingInterests: req.body.teachingInterests,
+      skills: req.body.skills,
+      technicalSkills: req.body.technicalSkills,
+      languages: req.body.languages,
+      hobbies: req.body.hobbies,
+      certificates: req.body.certificates,
+      notificationPreferences: req.body.notificationPreferences
+    };
+
+    // 3) Handle file upload if present
     if (req.file) {
       filteredBody.profileImage = req.file.path;
     }
 
-    // Update user document
+    // 4) Update user document
     const updatedUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {
       new: true,
-      runValidators: true,
+      runValidators: true
     });
 
     res.status(200).json({
       status: 'success',
       data: {
-        user: updatedUser,
-      },
+        user: updatedUser
+      }
     });
   } catch (err) {
     next(err);
   }
 };
+// exports.updateMe = async (req, res, next) => {
+//   try {
+//     // If user is not superadmin, they can only update their own profile
+//     if (req.user.role !== 'superadmin') {
+//       return next(
+//         new AppError('You do not have permission to update this profile', 403)
+//       );
+//     }
+
+//     // Filter out unwanted fields
+//     const filteredBody = filterObj(req.body, 'name', 'email', /* other allowed fields */);
+    
+//     // Handle file upload if needed
+//     if (req.file) {
+//       filteredBody.profileImage = req.file.path;
+//     }
+
+//     const updatedUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {
+//       new: true,
+//       runValidators: true
+//     });
+
+//     res.status(200).json({
+//       status: 'success',
+//       data: {
+//         user: updatedUser
+//       }
+//     });
+//   } catch (err) {
+//     next(err);
+//   }
+// };
+// exports.updateMe = async (req, res, next) => {
+//   try {
+//     // Filter out unwanted fields that are not allowed to be updated
+//     const filteredBody = { ...req.body };
+    
+//     // Handle file upload for profile image if needed
+//     if (req.file) {
+//       filteredBody.profileImage = req.file.path;
+//     }
+
+//     // Update user document
+//     const updatedUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {
+//       new: true,
+//       runValidators: true,
+//     });
+
+//     res.status(200).json({
+//       status: 'success',
+//       data: {
+//         user: updatedUser,
+//       },
+//     });
+//   } catch (err) {
+//     next(err);
+//   }
+// };
 
 
 

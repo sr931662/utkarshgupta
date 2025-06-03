@@ -250,20 +250,6 @@ const handleLogout = async () => {
               <Link to="/admin/dashboard" className={styles.mobileNavLink} onClick={toggleMobileMenu}>
                 <span className={styles.mobileLinkText}>Dashboard</span>
               </Link>
-              <Link 
-                to="/admin/profile" 
-                className={styles.mobileNavLink} 
-                onClick={toggleMobileMenu}
-              >
-                <span className={styles.mobileLinkText}>Profile</span>
-              </Link>
-              <Link 
-                to="/admin/settings" 
-                className={styles.mobileNavLink} 
-                onClick={toggleMobileMenu}
-              >
-                <span className={styles.mobileLinkText}>Settings</span>
-              </Link>
               <button 
                 className={styles.mobileNavLink} 
                 onClick={() => {
