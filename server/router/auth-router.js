@@ -13,9 +13,11 @@ router.get('/public/contact', authController.getPublicContactInfo);
 router.get('/public/superadmin', authController.getPublicSuperadmin);
 // Protected routes (require authentication)
 
-router.use(authController.protect);
 
 router.post('/', authController.sendContactEmail);
+
+router.use(authController.protect);
+
 router.get('/me', authController.getMe);
 router.patch('/update-me', authController.updateMe);
 router.patch('/update-password', authController.updatePassword);
