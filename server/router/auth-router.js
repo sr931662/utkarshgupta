@@ -10,7 +10,7 @@ router.post('/verify-otp-reset', authController.resetPassword);
 // Add this near the top of auth-router.js (before protected routes)
 router.get('/auth/public/contact', authController.getPublicContactInfo);
 // Add this near the top of auth-router.js (before protected routes)
-router.get('/auth/public/superadmin', authController.getPublicSuperadmin);
+router.get('/public/superadmin', authController.getPublicSuperadmin);
 // Protected routes (require authentication)
 
 
