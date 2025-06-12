@@ -18,7 +18,7 @@ import ProtectedRoute from './context/protectedRoute';
 import ProfileSettings from './components/dashboard/profileSettings/profileSettings';
 
 const App = () => {
-  const [user, setUser] = useState(null);
+  const setUser = useState(null);
 const [authChecked, setAuthChecked] = useState(false);
 
 useEffect(() => {

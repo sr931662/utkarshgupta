@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useTheme } from '../../../context/ThemeContext';
 import { motion } from 'framer-motion';
 import styles from './uploadPubs.module.css';
-import { FiLink, FiFileText, FiX, FiCheck, FiPlus, FiMinus, FiCalendar, FiUser } from 'react-icons/fi';
+import { FiLink, FiFileText, FiCheck, FiPlus, FiMinus, FiCalendar, FiUser } from 'react-icons/fi';
 
 const UploadPublications = () => {
   const { darkMode } = useTheme();

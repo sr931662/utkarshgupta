@@ -5,10 +5,10 @@ import { motion } from 'framer-motion';
 import styles from './profileSettings.module.css';
 import { authAPI } from '../../../context/authAPI';
 import { 
-  FiUser, FiMail, FiLock, FiSave, FiEdit, FiCamera,
-  FiLinkedin, FiGithub, FiTwitter, FiCalendar, FiBriefcase,
-  FiBook, FiCode, FiMapPin, FiPhone, FiGlobe, FiBookmark,
-  FiHome, FiLayers, FiAward, FiTool, FiClock, FiDollarSign
+  FiUser, FiMail, FiSave, FiEdit, FiCamera,
+  FiLinkedin, FiGithub, FiTwitter, FiCalendar,
+  FiMapPin, FiPhone,
+  FiHome, FiClock
 } from 'react-icons/fi';
 
 
