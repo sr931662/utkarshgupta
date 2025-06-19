@@ -98,13 +98,13 @@ const Publications = () => {
   useEffect(() => {
     if (loading || error) return;
 
-    const animatableElements = [
-      titleRef.current,
-      subtitleRef.current,
-      filterRef.current,
-      ...publicationsRef.current,
-      viewAllRef.current
-    ].filter(el => el);
+    // const animatableElements = [
+    //   titleRef.current,
+    //   subtitleRef.current,
+    //   filterRef.current,
+    //   ...publicationsRef.current,
+    //   viewAllRef.current
+    // ].filter(el => el);
 
     // gsap.set(animatableElements, { autoAlpha: 0, y: 20 });
 

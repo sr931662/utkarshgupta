@@ -11,7 +11,7 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [superadminProfile, setSuperadminProfile] = useState(null);
   const navigate = useNavigate();
-  const location = useLocation();
+  // const location = useLocation();
 
   const updateUser = (updatedUserData) => {
     setUser(prev => ({ ...prev, ...updatedUserData }));

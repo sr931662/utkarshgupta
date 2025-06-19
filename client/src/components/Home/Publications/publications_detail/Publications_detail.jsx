@@ -204,7 +204,7 @@ const PublicationsDetail = () => {
       ref={sectionRef}
     >
       <div className={styles.container}>
-        <a href="#" className={styles.backButton} onClick={(e) => { e.preventDefault(); navigate(-1); }}>
+        <a href="/" className={styles.backButton} onClick={(e) => { e.preventDefault(); navigate(-1); }}>
           <i className="ri-arrow-left-line mr-2"></i>
           Back to Publications
         </a>

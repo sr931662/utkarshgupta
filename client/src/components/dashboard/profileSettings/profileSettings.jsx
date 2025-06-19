@@ -13,7 +13,7 @@ import {
 
 
 const ProfileSettings = () => {
-  const { darkMode, toggleTheme } = useTheme();
+  const { darkMode } = useTheme();
   const { user, updateUser } = useAuth();
   const [editMode, setEditMode] = useState(false);
   const [activeSection, setActiveSection] = useState('personal');

@@ -65,146 +65,148 @@ const Dashboard = () => {
         return <div className={styles.tabContent}><UploadPublications /></div>;
       case 'profile':
         return <div className={styles.tabContent}><ProfileSettings /></div>;
+        default:
+          return "Default";
     }
   };
 
-  const renderDashboardContent = () => (
-    <>
-      {/* Stats Cards */}
-      <div className={styles.statsGrid}>
-        {stats.map((stat, index) => (
-          <motion.div 
-            key={stat.id}
-            className={styles.statCard}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-          >
-            {isLoading ? (
-              <div className={styles.skeletonLoader} style={{ height: '2rem', width: '60%' }} />
-            ) : (
-              <>
-                <div className={styles.statHeader}>
-                  <div className={styles.statIcon}>{stat.icon}</div>
-                  <h3>{stat.label}</h3>
-                </div>
-                <p className={styles.statValue}>{stat.value}{stat.isPercentage ? '%' : ''}</p>
-                {stat.change && <p className={styles.statChange}>{stat.change}</p>}
-                {stat.id === 4 && (
-                  <div className={styles.progressBar}>
-                    <motion.div 
-                      className={styles.progressFill} 
-                      initial={{ width: 0 }}
-                      animate={{ width: `${stat.value}%` }}
-                      transition={{ delay: 0.3, duration: 1 }}
-                    />
-                  </div>
-                )}
-              </>
-            )}
-          </motion.div>
-        ))}
-      </div>
+  // const renderDashboardContent = () => (
+  //   <>
+  //     {/* Stats Cards */}
+  //     <div className={styles.statsGrid}>
+  //       {stats.map((stat, index) => (
+  //         <motion.div 
+  //           key={stat.id}
+  //           className={styles.statCard}
+  //           initial={{ opacity: 0, y: 20 }}
+  //           animate={{ opacity: 1, y: 0 }}
+  //           transition={{ delay: index * 0.1 }}
+  //         >
+  //           {isLoading ? (
+  //             <div className={styles.skeletonLoader} style={{ height: '2rem', width: '60%' }} />
+  //           ) : (
+  //             <>
+  //               <div className={styles.statHeader}>
+  //                 <div className={styles.statIcon}>{stat.icon}</div>
+  //                 <h3>{stat.label}</h3>
+  //               </div>
+  //               <p className={styles.statValue}>{stat.value}{stat.isPercentage ? '%' : ''}</p>
+  //               {stat.change && <p className={styles.statChange}>{stat.change}</p>}
+  //               {stat.id === 4 && (
+  //                 <div className={styles.progressBar}>
+  //                   <motion.div 
+  //                     className={styles.progressFill} 
+  //                     initial={{ width: 0 }}
+  //                     animate={{ width: `${stat.value}%` }}
+  //                     transition={{ delay: 0.3, duration: 1 }}
+  //                   />
+  //                 </div>
+  //               )}
+  //             </>
+  //           )}
+  //         </motion.div>
+  //       ))}
+  //     </div>
 
-      {/* Recent Activity */}
-      <motion.div 
-        className={styles.activityCard}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.4 }}
-      >
-        <div className={styles.cardHeader}>
-          <h2>Recent Activity</h2>
-          <button className={styles.viewAll}>View All <FiChevronRight /></button>
-        </div>
-        {isLoading ? (
-          <div className={styles.skeletonLoader} style={{ height: '200px' }} />
-        ) : (
-          <ul className={styles.activityList}>
-            {activities.map((activity) => (
-              <motion.li
-                key={activity.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.5 + activity.id * 0.1 }}
-              >
-                <span className={styles.activityIcon}>{activity.icon}</span>
-                <div className={styles.activityContent}>
-                  <p>{activity.text}</p>
-                  <small>{activity.time}</small>
-                </div>
-              </motion.li>
-            ))}
-          </ul>
-        )}
-      </motion.div>
+  //     {/* Recent Activity */}
+  //     <motion.div 
+  //       className={styles.activityCard}
+  //       initial={{ opacity: 0 }}
+  //       animate={{ opacity: 1 }}
+  //       transition={{ delay: 0.4 }}
+  //     >
+  //       <div className={styles.cardHeader}>
+  //         <h2>Recent Activity</h2>
+  //         <button className={styles.viewAll}>View All <FiChevronRight /></button>
+  //       </div>
+  //       {isLoading ? (
+  //         <div className={styles.skeletonLoader} style={{ height: '200px' }} />
+  //       ) : (
+  //         <ul className={styles.activityList}>
+  //           {activities.map((activity) => (
+  //             <motion.li
+  //               key={activity.id}
+  //               initial={{ opacity: 0, x: -20 }}
+  //               animate={{ opacity: 1, x: 0 }}
+  //               transition={{ delay: 0.5 + activity.id * 0.1 }}
+  //             >
+  //               <span className={styles.activityIcon}>{activity.icon}</span>
+  //               <div className={styles.activityContent}>
+  //                 <p>{activity.text}</p>
+  //                 <small>{activity.time}</small>
+  //               </div>
+  //             </motion.li>
+  //           ))}
+  //         </ul>
+  //       )}
+  //     </motion.div>
 
-      {/* Content Overview */}
-      <motion.div 
-        className={styles.contentCard}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.8 }}
-      >
-        <div className={styles.cardHeader}>
-          <h2>Content Overview</h2>
-          <select className={styles.timeFilter}>
-            <option>Last 7 days</option>
-            <option>Last 30 days</option>
-            <option>Last 90 days</option>
-          </select>
-        </div>
-        {isLoading ? (
-          <div className={styles.skeletonLoader} style={{ height: '300px' }} />
-        ) : (
-          <div className={styles.chartPlaceholder}>
-            <div className={styles.chartPlaceholderText}>
-              Content Chart Visualization
-            </div>
-          </div>
-        )}
-      </motion.div>
+  //     {/* Content Overview */}
+  //     <motion.div 
+  //       className={styles.contentCard}
+  //       initial={{ opacity: 0 }}
+  //       animate={{ opacity: 1 }}
+  //       transition={{ delay: 0.8 }}
+  //     >
+  //       <div className={styles.cardHeader}>
+  //         <h2>Content Overview</h2>
+  //         <select className={styles.timeFilter}>
+  //           <option>Last 7 days</option>
+  //           <option>Last 30 days</option>
+  //           <option>Last 90 days</option>
+  //         </select>
+  //       </div>
+  //       {isLoading ? (
+  //         <div className={styles.skeletonLoader} style={{ height: '300px' }} />
+  //       ) : (
+  //         <div className={styles.chartPlaceholder}>
+  //           <div className={styles.chartPlaceholderText}>
+  //             Content Chart Visualization
+  //           </div>
+  //         </div>
+  //       )}
+  //     </motion.div>
 
-      {/* Quick Actions */}
-      <motion.div 
-        className={styles.quickActions}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1 }}
-      >
-        <h2>Quick Actions</h2>
-        {isLoading ? (
-          <div className={styles.skeletonLoader} style={{ height: '100px' }} />
-        ) : (
-          <div className={styles.actionButtons}>
-            <motion.button 
-              className={styles.primaryAction}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setActiveTab('upload')}
-            >
-              <FiUpload size={24} />
-              <span>Upload New</span>
-            </motion.button>
-            <motion.button 
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <FiFileText size={24} />
-              <span>Create Draft</span>
-            </motion.button>
-            <motion.button 
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <FiTrendingUp size={24} />
-              <span>Generate Report</span>
-            </motion.button>
-          </div>
-        )}
-      </motion.div>
-    </>
-  );
+  //     {/* Quick Actions */}
+  //     <motion.div 
+  //       className={styles.quickActions}
+  //       initial={{ opacity: 0 }}
+  //       animate={{ opacity: 1 }}
+  //       transition={{ delay: 1 }}
+  //     >
+  //       <h2>Quick Actions</h2>
+  //       {isLoading ? (
+  //         <div className={styles.skeletonLoader} style={{ height: '100px' }} />
+  //       ) : (
+  //         <div className={styles.actionButtons}>
+  //           <motion.button 
+  //             className={styles.primaryAction}
+  //             whileHover={{ scale: 1.03 }}
+  //             whileTap={{ scale: 0.98 }}
+  //             onClick={() => setActiveTab('upload')}
+  //           >
+  //             <FiUpload size={24} />
+  //             <span>Upload New</span>
+  //           </motion.button>
+  //           <motion.button 
+  //             whileHover={{ scale: 1.03 }}
+  //             whileTap={{ scale: 0.98 }}
+  //           >
+  //             <FiFileText size={24} />
+  //             <span>Create Draft</span>
+  //           </motion.button>
+  //           <motion.button 
+  //             whileHover={{ scale: 1.03 }}
+  //             whileTap={{ scale: 0.98 }}
+  //           >
+  //             <FiTrendingUp size={24} />
+  //             <span>Generate Report</span>
+  //           </motion.button>
+  //         </div>
+  //       )}
+  //     </motion.div>
+  //   </>
+  // );
 
   return (
     <div className={`${styles.dashboard} ${darkMode ? styles.dark : ''} ${sidebarCollapsed ? styles.sidebarCollapsed : ''}`}>

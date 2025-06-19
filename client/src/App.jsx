@@ -19,7 +19,7 @@ import ProfileSettings from './components/dashboard/profileSettings/profileSetti
 
 const App = () => {
   const setUser = useState(null);
-const [authChecked, setAuthChecked] = useState(false);
+const [setAuthChecked] = useState(false);
 
 useEffect(() => {
   const checkAuth = async () => {
@@ -48,7 +48,7 @@ useEffect(() => {
   };
 
   checkAuth();
-}, []);
+}, [setUser]);
   return (
     <BrowserRouter>
       <AuthProvider>

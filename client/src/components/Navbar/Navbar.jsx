@@ -12,7 +12,7 @@ const Navbar = () => {
   // Example excerpt from inside Navbar
   const { user, isAuthenticated, logout } = useAuth();
   const location = useLocation();
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const toggleRef = React.useRef(null);
   const circleRef = React.useRef(null);
   const iconRef = React.useRef(null);
