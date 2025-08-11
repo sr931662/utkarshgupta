@@ -16,10 +16,11 @@ import Admin from './components/admin/admin';
 import { AuthProvider } from './context/authContext';
 import ProtectedRoute from './context/protectedRoute';
 import ProfileSettings from './components/dashboard/profileSettings/profileSettings';
+import Carousel from './components/Home/Carousel/Carousel';
 
 const App = () => {
-  const setUser = useState(null);
-const [setAuthChecked] = useState(false);
+  const [user, setUser] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false);
 
 useEffect(() => {
   const checkAuth = async () => {
@@ -84,6 +85,7 @@ const HomePage = () => {
       <Hero />
       <ResearchInterest />
       <Publications />
+      <Carousel />
       <CV />
       <Contact />
     </div>
