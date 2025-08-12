@@ -2,6 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/auth-controller');
+const upload = require('../utils/multer'); // Create this file (see next step)
 
 // Public routes
 router.post('/login', authController.login);
@@ -9,6 +10,50 @@ router.post('/login', authController.login);
 // OTP-based forgot/reset
 router.post('/send-otp', authController.forgotPassword); // send OTP to email (for forgot password)
 router.post('/verify-otp-reset', authController.resetPassword); // verify OTP & set new password
+
+// In your auth routes
+router.patch('/update-me', 
+  upload.single('profileImage'), // Using multer for file uploads
+  async (req, res) => {
+    try {
+      const updates = req.body;
+      
+      // Handle file upload
+      if (req.file) {
+        // Process the file (upload to cloud storage or save locally)
+        const result = await uploadToCloudinary(req.file); // Your upload function
+        updates.profileImage = result.secure_url;
+      }
+
+      // Handle nested objects that were stringified
+      if (updates.socialMedia) {
+        updates.socialMedia = JSON.parse(updates.socialMedia);
+      }
+      if (updates.affiliation) {
+        updates.affiliation = JSON.parse(updates.affiliation);
+      }
+      if (updates.location) {
+        updates.location = JSON.parse(updates.location);
+      }
+
+      const updatedUser = await User.findByIdAndUpdate(
+        req.user._id,
+        { $set: updates },
+        { new: true, runValidators: true }
+      );
+
+      res.status(200).json({
+        status: 'success',
+        user: updatedUser
+      });
+    } catch (err) {
+      res.status(400).json({
+        status: 'fail',
+        message: err.message
+      });
+    }
+  }
+);
 
 // Public info endpoints
 router.get('/auth/public/contact', authController.getPublicContactInfo);
@@ -21,7 +66,7 @@ router.post('/contact', authController.sendContactEmail); // If kept
 router.use(authController.protect);
 
 router.get('/me', authController.getMe);
-router.patch('/update-me', authController.updateMe);
+router.patch('/update-me', upload.single('profileImage'), authController.updateMe);
 router.patch('/update-password', authController.updatePassword);
 
 // Admin-only routes

@@ -51,7 +51,10 @@ const userSchema = new mongoose.Schema(
 
     // Personal information
     professionalTitle: String,
-    profileImage: String, // URL
+    profileImage: {
+      type: String,
+      default: ''
+    }, // URL
     gender: {
       type: String,
       enum: ['male', 'female'],

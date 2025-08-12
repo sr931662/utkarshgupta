@@ -99,40 +99,78 @@ export const authAPI = {
       throw error;
     }
   },
-  updateProfile: async (url, userData) => {
-    try {
-      // Handle file upload if profileImage is a base64 string
-      if (userData.profileImage && userData.profileImage.startsWith('data:image')) {
-        const formData = new FormData();
-        Object.keys(userData).forEach(key => {
-          if (key === 'profileImage') {
-            // Convert base64 to Blob
-            const blob = dataURLtoBlob(userData.profileImage);
-            formData.append('profileImage', blob, 'profile.jpg');
-          } else if (typeof userData[key] === 'object') {
-            formData.append(key, JSON.stringify(userData[key]));
-          } else {
-            formData.append(key, userData[key]);
-          }
-        });
-
-        const response = await api.patch('/auth/update-me', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        });
-        return response.data;
+  // Update the updateProfile method in authAPI.js
+// Update the updateProfile method in authAPI.js
+updateProfile: async (url, userData) => {
+  try {
+    // Handle file upload if profileImage is a base64 string
+    if (userData.profileImage && userData.profileImage.startsWith('data:image')) {
+      const formData = new FormData();
+      
+      // Append all fields to formData
+      for (const key in userData) {
+        if (key === 'profileImage') {
+          // Convert base64 to Blob
+          const blob = dataURLtoBlob(userData.profileImage);
+          formData.append('profileImage', blob, 'profile.jpg');
+        } else if (typeof userData[key] === 'object' && userData[key] !== null) {
+          formData.append(key, JSON.stringify(userData[key]));
+        } else if (userData[key] !== undefined && userData[key] !== null) {
+          formData.append(key, userData[key]);
+        }
       }
 
-      // Regular JSON update
-      const response = await api.patch(url, userData);
+      const response = await api.patch('/auth/update-me', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
       return response.data;
-    } catch (error) {
-      throw new Error(
-        error.response?.data?.message || 'Failed to update profile'
-      );
     }
-  },
+
+    // Regular JSON update
+    const response = await api.patch(url, userData);
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.message || 'Failed to update profile'
+    );
+  }
+},
+  // updateProfile: async (url, userData) => {
+  //   try {
+  //     // Handle file upload if profileImage is a base64 string
+  //     if (userData.profileImage && userData.profileImage.startsWith('data:image')) {
+  //       const formData = new FormData();
+  //       Object.keys(userData).forEach(key => {
+  //         if (key === 'profileImage') {
+  //           // Convert base64 to Blob
+  //           const blob = dataURLtoBlob(userData.profileImage);
+  //           formData.append('profileImage', blob, 'profile.jpg');
+  //         } else if (typeof userData[key] === 'object') {
+  //           formData.append(key, JSON.stringify(userData[key]));
+  //         } else {
+  //           formData.append(key, userData[key]);
+  //         }
+  //       });
+
+  //       const response = await api.patch('/auth/update-me', formData, {
+  //         headers: {
+  //           'Content-Type': 'multipart/form-data',
+  //         },
+  //       });
+  //       return response.data;
+  //     }
+
+  //     // Regular JSON update
+  //     const response = await api.patch(url, userData);
+  //     return response.data;
+  //   } catch (error) {
+  //     throw new Error(
+  //       error.response?.data?.message || 'Failed to update profile'
+  //     );
+  //   }
+  // },
   refreshToken: async () => {
     const { data } = await api.post('/auth/refresh');
     return data;
@@ -153,6 +191,17 @@ function dataURLtoBlob(dataurl) {
   }
   return new Blob([u8arr], { type: mime });
 }
+// function dataURLtoBlob(dataurl) {
+//   const arr = dataurl.split(',');
+//   const mime = arr[0].match(/:(.*?);/)[1];
+//   const bstr = atob(arr[1]);
+//   let n = bstr.length;
+//   const u8arr = new Uint8Array(n);
+//   while (n--) {
+//     u8arr[n] = bstr.charCodeAt(n);
+//   }
+//   return new Blob([u8arr], { type: mime });
+// }
 
 export default api;
 
