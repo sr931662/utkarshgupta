@@ -74,32 +74,44 @@ const Login = () => {
   };
 
   const handleResetPassword = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    clearMessages();
+  e.preventDefault();
+  setLoading(true);
+  clearMessages();
 
-    if (newPassword !== confirmPassword) {
-      setErrors('Passwords do not match.');
-      setLoading(false);
-      return;
-    }
+  console.log("🔹 Reset password started");
+  console.log("Email:", forgotPasswordEmail);
+  console.log("OTP:", otp);
+  console.log("New Password:", newPassword);
+  console.log("Confirm Password:", confirmPassword);
 
-    try {
-      await axios.post('https://utkarshgupta-1.onrender.com/api/auth/verify-otp-reset', {
-        email: forgotPasswordEmail,
-        otp,
-        newPassword
-      });
+  if (newPassword !== confirmPassword) {
+    console.warn("⚠️ Passwords do not match");
+    setErrors('Passwords do not match.');
+    setLoading(false);
+    return;
+  }
 
-      setSuccessMessage('Password reset successful! You can now log in.');
-      setTimeout(resetForgotPasswordFlow, 2000);
-    } catch (err) {
-      const message = err.response?.data?.message || 'Failed to reset password.';
-      setErrors(message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    console.log("📤 Sending request to reset password...");
+    const res = await axios.post('https://utkarshgupta-1.onrender.com/api/auth/verify-otp-reset', {
+      email: forgotPasswordEmail,
+      otp,
+      newPassword
+    });
+
+    console.log("✅ Reset password response:", res.data);
+    setSuccessMessage('Password reset successful! You can now log in.');
+    setTimeout(resetForgotPasswordFlow, 2000);
+  } catch (err) {
+    console.error("❌ Reset password failed:", err.response?.data || err.message);
+    const message = err.response?.data?.message || 'Failed to reset password.';
+    setErrors(message);
+  } finally {
+    console.log("🔹 Reset password process finished");
+    setLoading(false);
+  }
+};
+
 
   const resetForgotPasswordFlow = () => {
     setShowForgotPassword(false);
