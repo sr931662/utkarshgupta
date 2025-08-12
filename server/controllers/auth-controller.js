@@ -228,9 +228,30 @@ exports.forgotPassword = async (req, res, next) => {
     try {
       await sendEmail({
         email: user.email,
-        subject: 'Your password reset OTP (valid for 10 min)',
-        message: `Your OTP is ${otp}. This code will expire in 10 minutes.`,
-        html: `<h2>Password Reset OTP</h2><p>Your OTP is <b>${otp}</b>. It expires in 10 minutes.</p>`
+        subject: 'Your Password Reset OTP (valid for 10 minutes)',
+        message: `Your OTP is ${otp}. It will expire in 10 minutes.`,
+        html: `
+        <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; background: #f7f9fc; border-radius: 8px; border: 1px solid #e1e5ee;">
+          <div style="text-align: center; padding-bottom: 10px;">
+            <h2 style="color: #2d3748; margin-bottom: 5px;">Password Reset Request</h2>
+            <p style="color: #718096; font-size: 14px;">You requested to reset your password. Use the OTP below to proceed:</p>
+          </div>
+
+          <div style="background: white; padding: 20px; text-align: center; border-radius: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
+            <p style="color: #4a5568; font-size: 14px; margin-bottom: 10px;">Your One-Time Password (OTP) is:</p>
+            <h1 style="color: #2b6cb0; letter-spacing: 4px; font-size: 32px; margin: 0;">${otp}</h1>
+            <p style="color: #e53e3e; font-size: 12px; margin-top: 8px;">This code will expire in 10 minutes.</p>
+          </div>
+
+          <p style="color: #4a5568; font-size: 14px; margin-top: 20px;">
+            If you did not request a password reset, please ignore this email or contact our support team.
+          </p>
+
+          <div style="text-align: center; margin-top: 30px; font-size: 12px; color: #a0aec0;">
+            &copy; ${new Date().getFullYear()} Your Company Name. All rights reserved.
+          </div>
+        </div>
+        `
       });
     } catch (err) {
       user.passwordResetOTP = undefined;
@@ -248,6 +269,7 @@ exports.forgotPassword = async (req, res, next) => {
     next(err);
   }
 };
+
 
 
 exports.resetPassword = async (req, res, next) => {

@@ -13,7 +13,6 @@ const Login = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
-  const [setShowPasswordFields] = useState(false);
   const [errors, setErrors] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [loading, setLoading] = useState(false);
@@ -116,7 +115,6 @@ const Login = () => {
   const resetForgotPasswordFlow = () => {
     setShowForgotPassword(false);
     setOtpSent(false);
-    setShowPasswordFields(false);
     setForgotPasswordEmail('');
     setOtp('');
     setNewPassword('');
