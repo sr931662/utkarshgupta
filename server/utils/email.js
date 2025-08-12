@@ -1,74 +1,62 @@
 // utils/email.js
 const nodemailer = require('nodemailer');
-const pug = require('pug');
-const htmlToText = require('html-to-text');
-const path = require('path');
 
-module.exports = class Email {
-  constructor(user, url) {
-    this.to = user.email;
-    this.firstName = user.name?.split(' ')[0] || 'User';
-    this.url = url;
-    this.from = `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_FROM_ADDRESS}>`;
-  }
+const sendEmail = async (options) => {
+  // 1) Create transporter
+  const transporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",          // e.g. smtp.gmail.com
+    port: 465,          // 465 (secure) or 587 (non-secure)
+    secure: true, // true for port 465, false for others
+    auth: {
+      user: process.env.EMAIL_USERNAME,    // your email
+      pass: process.env.EMAIL_PASSWORD,    // your email password or app password
+    },
+  });
 
-  // Create different transports for different environments
-  newTransport() {
-    if (process.env.NODE_ENV === 'production') {
-      // Sendgrid for production
-      return nodemailer.createTransport({
-        service: 'SendGrid',
-        auth: {
-          user: process.env.SENDGRID_USERNAME,
-          pass: process.env.SENDGRID_PASSWORD
-        }
-      });
-    }
+  // 2) Define email options
+  const mailOptions = {
+    from: `"${process.env.EMAIL_FROM_NAME || 'Admin'}" <${process.env.EMAIL_FROM}>`,
+    to: options.email,
+    subject: options.subject,
+    text: options.message,
+    html: options.html || `<p>${options.message}</p>`,
+  };
 
-    // Mailtrap for development
-    return nodemailer.createTransport({
-      host: process.env.EMAIL_HOST,
-      port: process.env.EMAIL_PORT,
-      auth: {
-        user: process.env.EMAIL_USERNAME,
-        pass: process.env.EMAIL_PASSWORD
-      }
-    });
-  }
-
-  // Send the actual email
-  async send(template, subject) {
-    // 1) Render HTML based on a pug template
-    const html = pug.renderFile(
-      path.join(__dirname, `../views/emails/${template}.pug`),
-      {
-        firstName: this.firstName,
-        url: this.url,
-        subject
-      }
-    );
-
-    // 2) Define email options
-    const mailOptions = {
-      from: this.from,
-      to: this.to,
-      subject,
-      html,
-      text: htmlToText.convert(html)
-    };
-
-    // 3) Create a transport and send email
-    await this.newTransport().sendMail(mailOptions);
-  }
-
-  async sendPasswordReset() {
-    await this.send(
-      'passwordReset',
-      'Your password reset token (valid for only 10 minutes)'
-    );
-  }
-
-  async sendWelcome() {
-    await this.send('welcome', 'Welcome to our platform!');
-  }
+  // 3) Send email
+  await transporter.sendMail(mailOptions);
 };
+
+module.exports = sendEmail;
+
+
+
+
+// // utils/email.js
+// const nodemailer = require('nodemailer');
+
+// const sendEmail = async (options) => {
+//   // 1) Create transporter
+//   const transporter = nodemailer.createTransport({
+//     host: process.env.EMAIL_HOST,          // e.g. smtp.gmail.com
+//     port: process.env.EMAIL_PORT,          // 465 (secure) or 587 (non-secure)
+//     secure: process.env.EMAIL_SECURE === 'true', // true for port 465, false for others
+//     auth: {
+//       user: process.env.EMAIL_USERNAME,    // your email
+//       pass: process.env.EMAIL_PASSWORD,    // your email password or app password
+//     },
+//   });
+
+//   // 2) Define email options
+//   const mailOptions = {
+//     from: `"${process.env.EMAIL_FROM_NAME || 'Admin'}" <${process.env.EMAIL_FROM}>`,
+//     to: options.email,
+//     subject: options.subject,
+//     text: options.message,
+//     html: options.html || `<p>${options.message}</p>`,
+//   };
+
+//   // 3) Send email
+//   await transporter.sendMail(mailOptions);
+// };
+
+// module.exports = sendEmail;

@@ -66,7 +66,7 @@ const Login = () => {
       setOtpSent(true);
       setSuccessMessage('OTP has been sent to your email.');
     } catch (err) {
-      const message = err.response?.data?.message || 'Failed to send OTP.';
+      const message = err.response?.data?.message;
       setErrors(message);
     } finally {
       setLoading(false);

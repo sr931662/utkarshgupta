@@ -6,7 +6,7 @@ const authRouter = require('./router/auth-router');
 const pubRouter = require('./router/pub-router'); // Add publications router
 const path = require('path');
 const morgan = require('morgan'); // For request logging
-const otpRoutes = require('./router/otp-router');
+// const otpRoutes = require('./router/otp-router');
 
 // Initialize app
 const app = express();
@@ -28,7 +28,6 @@ app.use(
     credentials: true,
   })
 );
-
 // Serve static files (for uploaded publications)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -41,12 +40,22 @@ app.get('/', (req, res) => {
 app.use('/api/auth', authRouter);
 app.use('/api/publications', pubRouter); // Add publications routes
 app.use('/api/contact', authRouter);
+// app.use('/api/auth/otp', otpRoutes);
 // 404 Handler
 app.use('*', (req, res) => {
   res.status(404).json({
     status: 'fail',
     message: 'Endpoint not found'
   });
+});
+
+// Serve frontend (React build)
+const buildPath = path.join(__dirname, '../frontend/build');
+app.use(express.static(buildPath));
+
+// Catch-all route for SPA
+app.get('*', (req, res) => {
+  res.sendFile(path.join(buildPath, 'index.html'));
 });
 
 // Error handling middleware

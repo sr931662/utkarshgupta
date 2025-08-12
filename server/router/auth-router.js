@@ -1,21 +1,23 @@
+// routes/auth-router.js
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/auth-controller');
-const authMiddleware = require('../middlewares/auth-mid');
 
-// Authentication routes
+// Public routes
 router.post('/login', authController.login);
-router.post('/send-otp', authController.forgotPassword);
-router.post('/verify-otp-reset', authController.resetPassword);
-// Add this near the top of auth-router.js (before protected routes)
+
+// OTP-based forgot/reset
+router.post('/send-otp', authController.forgotPassword); // send OTP to email (for forgot password)
+router.post('/verify-otp-reset', authController.resetPassword); // verify OTP & set new password
+
+// Public info endpoints
 router.get('/auth/public/contact', authController.getPublicContactInfo);
-// Add this near the top of auth-router.js (before protected routes)
 router.get('/public/superadmin', authController.getPublicSuperadmin);
-// Protected routes (require authentication)
 
+// Contact form (public)
+router.post('/contact', authController.sendContactEmail); // If kept
 
-router.post('/', authController.sendContactEmail);
-
+// Protected routes - require login
 router.use(authController.protect);
 
 router.get('/me', authController.getMe);
@@ -25,7 +27,76 @@ router.patch('/update-password', authController.updatePassword);
 // Admin-only routes
 router.use(authController.restrictTo('superadmin'));
 
+// add admin-only routes here...
+
 module.exports = router;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// const express = require('express');
+// const router = express.Router();
+// const authController = require('../controllers/auth-controller');
+// const authMiddleware = require('../middlewares/auth-mid');
+
+// // Authentication routes
+// router.post('/login', authController.login);
+// router.post('/send-otp', authController.forgotPassword);
+// router.post('/verify-otp-reset', authController.resetPassword);
+// // Add this near the top of auth-router.js (before protected routes)
+// router.get('/auth/public/contact', authController.getPublicContactInfo);
+// // Add this near the top of auth-router.js (before protected routes)
+// router.get('/public/superadmin', authController.getPublicSuperadmin);
+// // Protected routes (require authentication)
+
+
+// router.post('/', authController.sendContactEmail);
+
+// router.use(authController.protect);
+
+// router.get('/me', authController.getMe);
+// router.patch('/update-me', authController.updateMe);
+// router.patch('/update-password', authController.updatePassword);
+
+// // Admin-only routes
+// router.use(authController.restrictTo('superadmin'));
+
+// module.exports = router;
 
 
 
